@@ -8,6 +8,8 @@ import app.simplecloud.plugin.connection.shared.server.ServerConnectionInfoGette
 import com.google.inject.Inject
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.player.KickedFromServerEvent
+import com.velocitypowered.api.event.player.KickedFromServerEvent.RedirectPlayer
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.plugin.Plugin
@@ -50,6 +52,14 @@ class VelocityServerConnectionPlugin @Inject constructor(
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         registerCommands()
+    }
+
+    @Subscribe
+    fun onKickedFromServer(event: KickedFromServerEvent) {
+        val serverName = serverConnection.getServerNameToConnect(event.player)
+        server.getServer(serverName).ifPresent {
+            event.result = RedirectPlayer.create(it)
+        }
     }
 
     @Subscribe
