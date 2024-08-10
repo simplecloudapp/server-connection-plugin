@@ -45,5 +45,4 @@ object ConfigFactory {
         return config
     }
 
-
 }

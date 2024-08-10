@@ -56,7 +56,15 @@ class VelocityServerConnectionPlugin @Inject constructor(
 
     @Subscribe
     fun onKickedFromServer(event: KickedFromServerEvent) {
-        val serverName = serverConnection.getServerNameToConnect(event.player)
+        val serverName = serverConnection.getServerNameToConnect(event.player)?: return
+        if (event.server.serverInfo.name == serverName) {
+            return
+        }
+
+        if (event.player.currentServer.isEmpty) {
+            return
+        }
+
         server.getServer(serverName).ifPresent {
             event.result = RedirectPlayer.create(it)
         }
