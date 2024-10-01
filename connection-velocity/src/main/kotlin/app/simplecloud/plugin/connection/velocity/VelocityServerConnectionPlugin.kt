@@ -8,6 +8,7 @@ import app.simplecloud.plugin.connection.shared.server.ServerConnectionInfoGette
 import com.google.inject.Inject
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.player.KickedFromServerEvent
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.plugin.Plugin
@@ -54,10 +55,34 @@ class VelocityServerConnectionPlugin @Inject constructor(
 
     @Subscribe
     fun onPlayerChooseInitialServer(event: PlayerChooseInitialServerEvent) {
-        val serverConnectionInfoName = serverConnection.getServerNameToConnect(event.player) ?: return
+        val serverConnectionInfoName = serverConnection.getServerNameForLogin(event.player) ?: return
         val serverInfo = server.getServer(serverConnectionInfoName)
         serverInfo.ifPresent {
             event.setInitialServer(it)
+        }
+    }
+
+    @Subscribe
+    fun onKickedFromServer(event: KickedFromServerEvent) {
+        val connectionAndTargetConfigToServerName = serverConnection.getConnectionAndNameForFallback(event.player, event.server.serverInfo.name)
+        if (connectionAndTargetConfigToServerName == null) {
+            event.result = KickedFromServerEvent.DisconnectPlayer.create(miniMessage.deserialize(
+                serverConnection.config.fallbackConnectionsConfig.noTargetConnectionFoundMessage
+            ))
+            return
+        }
+
+        val (_, serverName) = connectionAndTargetConfigToServerName
+        if (event.server.serverInfo.name == serverName) {
+            return
+        }
+
+        if (event.player.currentServer.isEmpty) {
+            return
+        }
+
+        server.getServer(serverName).ifPresent {
+            event.result = KickedFromServerEvent.RedirectPlayer.create(it)
         }
     }
 
@@ -79,12 +104,20 @@ class VelocityServerConnectionPlugin @Inject constructor(
             .requires { commandConfig.permission.isEmpty() || it.hasPermission(commandConfig.permission) }
             .executes {
                 val player = it.source as? Player ?: return@executes 0
-                val connectionToServerName =
-                    serverConnection.getConnectionAndNameToConnect(player, commandConfig) ?: return@executes 0
-
                 val currentServerName = player.currentServer.getOrNull()?.serverInfo?.name
+                val connectionToServerName = serverConnection.getConnectionAndNameForCommand(
+                    player,
+                    commandConfig,
+                    currentServerName ?: ""
+                )
+
+                if (connectionToServerName == null) {
+                    player.sendMessage(miniMessage.deserialize(commandConfig.noTargetConnectionFound))
+                    return@executes 1
+                }
+
                 if (currentServerName != null
-                    && connectionToServerName.first.serverNameMatcher.matches(currentServerName)
+                    && connectionToServerName.first.connectionConfig.serverNameMatcher.matches(currentServerName)
                 ) {
                     player.sendMessage(miniMessage.deserialize(commandConfig.alreadyConnectedMessage))
                     return@executes 1
