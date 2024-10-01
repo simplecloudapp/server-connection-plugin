@@ -24,7 +24,7 @@ import kotlin.jvm.optionals.getOrNull
     id = "connection-velocity",
     name = "connection-velocity",
     version = "1.0-SNAPSHOT",
-    authors = ["Fllip"],
+    authors = ["Fllip", "hmtill"],
     url = "https://github.com/theSimpleCloud/server-connection-plugin"
 )
 class VelocityServerConnectionPlugin @Inject constructor(
@@ -55,7 +55,14 @@ class VelocityServerConnectionPlugin @Inject constructor(
 
     @Subscribe
     fun onPlayerChooseInitialServer(event: PlayerChooseInitialServerEvent) {
-        val serverConnectionInfoName = serverConnection.getServerNameForLogin(event.player) ?: return
+        val serverConnectionInfoName = serverConnection.getServerNameForLogin(event.player)
+        if (serverConnectionInfoName == null) {
+            event.player.disconnect(miniMessage.deserialize(
+                serverConnection.config.fallbackConnectionsConfig.noTargetConnectionFoundMessage
+            ))
+            return
+        }
+
         val serverInfo = server.getServer(serverConnectionInfoName)
         serverInfo.ifPresent {
             event.setInitialServer(it)
