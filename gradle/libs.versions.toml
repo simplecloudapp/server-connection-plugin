@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.8.0"
+kotlin = "2.0.0"
 shadow = "8.1.1"
 log4j = "2.20.0"
 grpcVersion = "1.61.0"
