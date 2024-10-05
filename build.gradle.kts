@@ -46,6 +46,11 @@ subprojects {
     tasks.named("shadowJar", ShadowJar::class) {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
+
+        val externalRelocatePath = "app.simplecloud.external"
+        relocate("kotlinx", "${externalRelocatePath}.kotlinx")
+        relocate("io", "${externalRelocatePath}.io")
+        relocate("org", "${externalRelocatePath}.org")
     }
 
     tasks.test {
