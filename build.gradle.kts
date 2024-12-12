@@ -28,7 +28,7 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "com.gradleup.shadow")
     apply(plugin = "net.thebugmc.gradle.sonatype-central-portal-publisher")
     apply(plugin = "maven-publish")
 
@@ -45,6 +45,11 @@ subprojects {
         }
     }
 
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
 
     publishing {
         repositories {
