@@ -3,6 +3,7 @@ package app.simplecloud.plugin.connection.shared
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConfigFactory
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
+import app.simplecloud.plugin.connection.shared.config.TargetConnectionConfig
 import app.simplecloud.plugin.connection.shared.server.ServerConnectionInfoGetter
 import java.nio.file.Path
 
@@ -12,45 +13,57 @@ class ServerConnectionPlugin<P>(
     private val permissionChecker: PermissionChecker<P>
 ) {
 
-    private val config = ConfigFactory.loadOrCreate(dataDirectory)
+    val config = ConfigFactory.loadOrCreate(dataDirectory)
 
     fun getCommandConfigs(): List<CommandConfig> {
         return config.commands
     }
 
-    fun getServerNameToConnect(player: P, commandConfig: CommandConfig? = null): String? {
-        return getConnectionAndNameToConnect(player, commandConfig)?.second
+    fun getServerNameForLogin(player: P): String? {
+        return getConnectionAndNameForLogin(player)?.second
     }
 
-    fun getConnectionAndNameToConnect(player: P, commandConfig: CommandConfig? = null): Pair<ConnectionConfig, String>? {
-        val serverConnectionInfos = serverConnectionInfoGetter.get()
-        val serverNames = serverConnectionInfos.map { it.name }
+    fun getConnectionAndNameForLogin(player: P): Pair<ConnectionAndTargetConfig, String>? {
+        return getConnectionAndName(player, config.networkJoinTargets.targetConnections)
+    }
 
-        val possibleConnections = getPossibleServerConnections(player, serverNames, commandConfig == null)
-        val bestConnection = possibleConnections
-            .filter { commandConfig == null || it.commandRef == commandConfig.name }
-            .maxByOrNull { it.priority } ?: return null
+    fun getConnectionAndNameForFallback(player: P, fromServerName: String): Pair<ConnectionAndTargetConfig, String>? {
+        return getConnectionAndName(player, config.fallbackConnectionsConfig.targetConnections, fromServerName)
+    }
 
-        val bestServerToConnect = getBestServerToConnect(bestConnection)?: return null
-        return Pair(bestConnection, bestServerToConnect)
+    fun getConnectionAndNameForCommand(player: P, commandConfig: CommandConfig): Pair<ConnectionAndTargetConfig, String>? {
+        return getConnectionAndName(player, commandConfig.targetConnections)
+    }
+
+    private fun getConnectionAndName(player: P, targetConnections: List<TargetConnectionConfig>, fromServerName: String = ""): Pair<ConnectionAndTargetConfig, String>? {
+        val possibleConnections = getPossibleServerConnections(player)
+        val possibleConnectionsWithTarget = possibleConnections.mapNotNull { connection ->
+            val targetConfig = targetConnections
+                .filter { fromServerName.isBlank() || it.from.any { matcher -> matcher.matches(fromServerName) } }
+                .firstOrNull { connection.name == it.name }?: return@mapNotNull null
+            ConnectionAndTargetConfig(connection, targetConfig)
+        }
+        val connectionAndTargetConfig  = possibleConnectionsWithTarget.maxByOrNull { it.targetConfig.priority }?: return null
+
+        val bestServerToConnect = getBestServerToConnect(connectionAndTargetConfig.connectionConfig)?: return null
+        return Pair(connectionAndTargetConfig, bestServerToConnect)
     }
 
     private fun getPossibleServerConnections(
-        player: P,
-        serverNames: List<String>,
-        login: Boolean
+        player: P
     ): List<ConnectionConfig> {
+        val serverConnectionInfos = serverConnectionInfoGetter.get()
+        val serverNames = serverConnectionInfos.map { it.name }
+
         return config.connections.filter { connection ->
             connection.serverNameMatcher.anyMatches(serverNames)
                     && connection.rules.all { it.isAllowed(player, permissionChecker) }
-                    && (!login || connection.tryOnLogin)
         }
     }
 
     private fun getBestServerToConnect(bestConnection: ConnectionConfig): String? {
         val serverConnectionInfos = serverConnectionInfoGetter.get()
         val bestServer = serverConnectionInfos
-            .shuffled()
             .sortedBy { it.onlinePlayers }
             .firstOrNull { bestConnection.serverNameMatcher.matches(it.name) }
 

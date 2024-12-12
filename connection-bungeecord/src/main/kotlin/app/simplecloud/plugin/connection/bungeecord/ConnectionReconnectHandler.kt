@@ -5,7 +5,6 @@ import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.ReconnectHandler
 import net.md_5.bungee.api.config.ServerInfo
 import net.md_5.bungee.api.connection.ProxiedPlayer
-import net.md_5.bungee.api.connection.Server
 
 /**
  * @author Niklas Nieberler
@@ -19,7 +18,7 @@ class ConnectionReconnectHandler(
     override fun getServer(player: ProxiedPlayer?): ServerInfo {
         if (player == null)
             throw NullPointerException("failed to find player")
-        val serverName = this.serverConnection.getServerNameToConnect(player)
+        val serverName = this.serverConnection.getServerNameForLogin(player)
             ?: throw NullPointerException("failed to find connected server")
         return this.proxyServer.getServerInfo(serverName)
     }

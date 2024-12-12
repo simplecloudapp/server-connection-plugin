@@ -16,24 +16,28 @@ import net.md_5.bungee.api.plugin.Command
 class BungeeCordCommand(
     private val serverConnection: ServerConnectionPlugin<ProxiedPlayer>,
     private val commandConfig: CommandConfig,
-    private val proxyServer: ProxyServer
+    private val proxyServer: ProxyServer,
+    private val miniMessage: MiniMessage,
 ) : Command(
     commandConfig.name,
     commandConfig.permission,
     *commandConfig.aliases.toTypedArray()
 ) {
 
-    private val miniMessage = MiniMessage.miniMessage()
-
     override fun execute(sender: CommandSender, args: Array<out String>) {
         val player = sender as ProxiedPlayer? ?: return
 
-        val connectionToServerName =
-            this.serverConnection.getConnectionAndNameToConnect(player, this.commandConfig) ?: return
-
         val currentServerName = player.server.info.name
+        val connectionToServerName =
+            this.serverConnection.getConnectionAndNameForCommand(player, this.commandConfig)
+
+        if (connectionToServerName == null) {
+            player.sendMessage(*BungeeComponentSerializer.get().serialize(miniMessage.deserialize(commandConfig.noTargetConnectionFound)))
+            return
+        }
+
         if (currentServerName != null
-            && connectionToServerName.first.serverNameMatcher.matches(currentServerName)
+            && connectionToServerName.first.connectionConfig.serverNameMatcher.matches(currentServerName)
         ) {
             val miniMessageComponent = this.miniMessage.deserialize(this.commandConfig.alreadyConnectedMessage)
             val component = BungeeComponentSerializer.get().serialize(miniMessageComponent)
