@@ -31,8 +31,8 @@ class ServerConnectionPlugin<P>(
         return getConnectionAndName(player, config.fallbackConnectionsConfig.targetConnections, fromServerName)
     }
 
-    fun getConnectionAndNameForCommand(player: P, commandConfig: CommandConfig, fromServerName: String): Pair<ConnectionAndTargetConfig, String>? {
-        return getConnectionAndName(player, commandConfig.targetConnections, fromServerName)
+    fun getConnectionAndNameForCommand(player: P, commandConfig: CommandConfig): Pair<ConnectionAndTargetConfig, String>? {
+        return getConnectionAndName(player, commandConfig.targetConnections)
     }
 
     private fun getConnectionAndName(player: P, targetConnections: List<TargetConnectionConfig>, fromServerName: String = ""): Pair<ConnectionAndTargetConfig, String>? {

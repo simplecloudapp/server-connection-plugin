@@ -115,7 +115,6 @@ class VelocityServerConnectionPlugin @Inject constructor(
                 val connectionToServerName = serverConnection.getConnectionAndNameForCommand(
                     player,
                     commandConfig,
-                    currentServerName ?: ""
                 )
 
                 if (connectionToServerName == null) {

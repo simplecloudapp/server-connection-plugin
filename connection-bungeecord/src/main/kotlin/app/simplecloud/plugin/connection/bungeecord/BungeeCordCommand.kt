@@ -29,7 +29,7 @@ class BungeeCordCommand(
 
         val currentServerName = player.server.info.name
         val connectionToServerName =
-            this.serverConnection.getConnectionAndNameForCommand(player, this.commandConfig, currentServerName)
+            this.serverConnection.getConnectionAndNameForCommand(player, this.commandConfig)
 
         if (connectionToServerName == null) {
             player.sendMessage(*BungeeComponentSerializer.get().serialize(miniMessage.deserialize(commandConfig.noTargetConnectionFound)))
