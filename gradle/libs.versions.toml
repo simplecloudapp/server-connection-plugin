@@ -2,10 +2,12 @@
 kotlin = "2.0.20"
 shadow = "8.3.3"
 sonatype-central-portal-publisher = "1.2.3"
+waterdog = "2.0.3-SNAPSHOT"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+waterdog = { module = "dev.waterdog.waterdogpe:waterdog", version.ref = "waterdog"}
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
