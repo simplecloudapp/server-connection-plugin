@@ -58,7 +58,7 @@ class VelocityServerConnectionPlugin @Inject constructor(
         val serverConnectionInfoName = serverConnection.getServerNameForLogin(event.player)
         if (serverConnectionInfoName == null) {
             event.player.disconnect(miniMessage.deserialize(
-                serverConnection.config.fallbackConnectionsConfig.noTargetConnectionFoundMessage
+                serverConnection.config.networkJoinTargets.noTargetConnectionFoundMessage
             ))
             return
         }
