@@ -24,7 +24,7 @@
 
 > All information about this project can be found in our detailed [documentation][docs-thisproject].
 
-A proxy plugin that registers SimpleCloud v3 Minecraft servers on a proxy server.
+The Server Connection Plugin provides comprehensive player connection management for your network, including network join handling, fallback servers, and navigation commands.
 
 ## Features
 
