@@ -32,7 +32,7 @@ object ConfigFactory {
 
 
     private fun create(path: Path, loader: YamlConfigurationLoader): Config {
-        val config = Config()
+        val config = Config.createDefaultConfig()
         if (!Files.exists(path)) {
             path.parent?.let { Files.createDirectories(it) }
             Files.createFile(path)

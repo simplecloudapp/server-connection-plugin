@@ -21,9 +21,9 @@ import java.util.logging.Logger
 import kotlin.jvm.optionals.getOrNull
 
 @Plugin(
-    id = "connection-velocity",
-    name = "connection-velocity",
-    version = "1.0-SNAPSHOT",
+    id = "simplecloud-connection",
+    name = "simplecloud-connection",
+    version = "0.0.1",
     authors = ["Fllip", "hmtill"],
     url = "https://github.com/theSimpleCloud/server-connection-plugin"
 )
