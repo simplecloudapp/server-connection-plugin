@@ -1,3 +1,5 @@
+package app.simplecloud.plugin.connection.waterdog
+
 import app.simplecloud.plugin.connection.shared.ServerConnectionPlugin
 import app.simplecloud.plugin.connection.shared.server.ServerConnectionInfo
 import dev.waterdog.waterdogpe.player.ProxiedPlayer

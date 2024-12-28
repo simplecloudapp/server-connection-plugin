@@ -1,3 +1,4 @@
+package app.simplecloud.plugin.connection.waterdog
 
 import app.simplecloud.plugin.connection.shared.ServerConnectionPlugin
 import dev.waterdog.waterdogpe.ProxyServer
