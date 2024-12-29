@@ -121,6 +121,10 @@ subprojects {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
 
+        dependencies {
+            include(project(":connection-shared"))
+        }
+
         val externalRelocatePath = "app.simplecloud.external"
         relocate("kotlinx", "${externalRelocatePath}.kotlinx")
         relocate("io", "${externalRelocatePath}.io")
