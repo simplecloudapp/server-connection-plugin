@@ -35,6 +35,7 @@ subprojects {
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
         implementation(rootProject.libs.kotlin.jvm)
+        api(rootProject.libs.simpleCloudPluginApi)
     }
 
     kotlin {
@@ -121,6 +122,7 @@ subprojects {
         relocate("kotlinx", "${externalRelocatePath}.kotlinx")
         relocate("io", "${externalRelocatePath}.io")
         relocate("org", "${externalRelocatePath}.org")
+        relocate("app.simplecloud.plugin.api", "${externalRelocatePath}.plugin.api")
     }
 
     tasks.test {

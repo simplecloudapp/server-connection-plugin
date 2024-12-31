@@ -1,5 +1,7 @@
 package app.simplecloud.plugin.connection.shared.config
 
+import app.simplecloud.plugin.api.shared.matcher.MatcherType
+import app.simplecloud.plugin.api.shared.matcher.ServerMatcherConfiguration
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 @ConfigSerializable
 data class Config(
@@ -18,22 +20,22 @@ data class Config(
             val defaultConnections = listOf(
                 ConnectionConfig(
                     name = "lobby",
-                    serverNameMatcher = MatcherConfig(
-                        operation = MatcherOperation.STARTS_WITH,
+                    serverNameMatcher = ServerMatcherConfiguration(
+                        operation = MatcherType.STARTS_WITH,
                         value = "lobby"
                     )
                 ),
                 ConnectionConfig(
                     name = "hub",
-                    serverNameMatcher = MatcherConfig(
-                        operation = MatcherOperation.STARTS_WITH,
+                    serverNameMatcher = ServerMatcherConfiguration(
+                        operation = MatcherType.STARTS_WITH,
                         value = "hub"
                     )
                 ),
                 ConnectionConfig(
                     name = "premium-lobby",
-                    serverNameMatcher = MatcherConfig(
-                        operation = MatcherOperation.STARTS_WITH,
+                    serverNameMatcher = ServerMatcherConfiguration(
+                        operation = MatcherType.STARTS_WITH,
                         value = "premium"
                     ),
                     rules = listOf(
@@ -46,8 +48,8 @@ data class Config(
                 ),
                 ConnectionConfig(
                     name = "vip-lobby",
-                    serverNameMatcher = MatcherConfig(
-                        operation = MatcherOperation.STARTS_WITH,
+                    serverNameMatcher = ServerMatcherConfiguration(
+                        operation = MatcherType.STARTS_WITH,
                         value = "vip"
                     ),
                     rules = listOf(
@@ -60,8 +62,8 @@ data class Config(
                 ),
                 ConnectionConfig(
                     name = "silent-lobby",
-                    serverNameMatcher = MatcherConfig(
-                        operation = MatcherOperation.STARTS_WITH,
+                    serverNameMatcher = ServerMatcherConfiguration(
+                        operation = MatcherType.STARTS_WITH,
                         value = "silent"
                     ),
                     rules = listOf(
