@@ -37,16 +37,25 @@ class ServerConnectionPlugin<P>(
 
     private fun getConnectionAndName(player: P, targetConnections: List<TargetConnectionConfig>, fromServerName: String = ""): Pair<ConnectionAndTargetConfig, String>? {
         val possibleConnections = getPossibleServerConnections(player)
-        val possibleConnectionsWithTarget = possibleConnections.mapNotNull { connection ->
-            val targetConfig = targetConnections
-                .filter { fromServerName.isBlank() || it.from.any { matcher -> matcher.matches(fromServerName) } }
-                .firstOrNull { connection.name == it.name }?: return@mapNotNull null
-            ConnectionAndTargetConfig(connection, targetConfig)
+        val possibleConnectionsWithTarget = possibleConnections.map { possibleConnection ->
+            val targetConfig= targetConnections
+                .filter { fromServerName.isBlank() || matchesTargetConnection(it, fromServerName) }
+                .firstOrNull { possibleConnection.name == it.name } ?: return null
+            ConnectionAndTargetConfig(possibleConnection, targetConfig)
         }
-        val connectionAndTargetConfig  = possibleConnectionsWithTarget.maxByOrNull { it.targetConfig.priority }?: return null
 
-        val bestServerToConnect = getBestServerToConnect(connectionAndTargetConfig.connectionConfig)?: return null
+        val connectionAndTargetConfig = possibleConnectionsWithTarget.maxByOrNull { it.targetConfig.priority }?: return null
+        val bestServerToConnect = getBestServerToConnect(fromServerName, connectionAndTargetConfig.connectionConfig)?: return null
         return Pair(connectionAndTargetConfig, bestServerToConnect)
+    }
+
+    private fun matchesTargetConnection(
+        targetConnectionConfig: TargetConnectionConfig,
+        fromServerName: String
+    ): Boolean {
+        if (targetConnectionConfig.from.isEmpty())
+            return true
+        return targetConnectionConfig.from.any { it.matches(fromServerName) }
     }
 
     private fun getPossibleServerConnections(
@@ -61,12 +70,12 @@ class ServerConnectionPlugin<P>(
         }
     }
 
-    private fun getBestServerToConnect(bestConnection: ConnectionConfig): String? {
+    private fun getBestServerToConnect(fromServerName: String, bestConnection: ConnectionConfig): String? {
         val serverConnectionInfos = serverConnectionInfoGetter.get()
         val bestServer = serverConnectionInfos
+            .filter { it.name != fromServerName }
             .sortedBy { it.onlinePlayers }
             .firstOrNull { bestConnection.serverNameMatcher.matches(it.name) }
-
         return bestServer?.name
     }
 
