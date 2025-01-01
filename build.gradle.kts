@@ -12,7 +12,6 @@ val commitHash = System.getenv("COMMIT_HASH")
 val snapshotversion = "${baseVersion}-dev.$commitHash"
 
 allprojects {
-
     group = "app.simplecloud.plugin"
     version = if (commitHash != null) snapshotversion else baseVersion
 
