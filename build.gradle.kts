@@ -12,7 +12,6 @@ val commitHash = System.getenv("COMMIT_HASH")
 val snapshotversion = "${baseVersion}-dev.$commitHash"
 
 allprojects {
-
     group = "app.simplecloud.plugin"
     version = if (commitHash != null) snapshotversion else baseVersion
 
@@ -35,7 +34,6 @@ subprojects {
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
         implementation(rootProject.libs.kotlin.jvm)
-        api(rootProject.libs.simpleCloudPluginApi)
     }
 
     kotlin {
@@ -122,7 +120,6 @@ subprojects {
         relocate("kotlinx", "${externalRelocatePath}.kotlinx")
         relocate("io", "${externalRelocatePath}.io")
         relocate("org", "${externalRelocatePath}.org")
-        relocate("app.simplecloud.plugin.api", "${externalRelocatePath}.plugin.api")
     }
 
     tasks.test {
