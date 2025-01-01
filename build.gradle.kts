@@ -23,6 +23,10 @@ allprojects {
         maven("https://libraries.minecraft.net")
         maven("https://repo.papermc.io/repository/maven-public")
         maven("https://repo.simplecloud.app/snapshots")
+        maven("https://repo.waterdog.dev/releases/")
+        maven("https://repo.waterdog.dev/snapshots/")
+        maven("https://repo.opencollab.dev/maven-releases/")
+        maven("https://repo.opencollab.dev/maven-snapshots/")
     }
 }
 
@@ -116,6 +120,10 @@ subprojects {
     tasks.named("shadowJar", ShadowJar::class) {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
+
+        dependencies {
+            include(project(":connection-shared"))
+        }
 
         val externalRelocatePath = "app.simplecloud.external"
         relocate("kotlinx", "${externalRelocatePath}.kotlinx")

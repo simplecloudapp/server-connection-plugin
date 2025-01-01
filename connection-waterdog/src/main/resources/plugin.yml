@@ -1,0 +1,5 @@
+name: connection-waterdog
+version: 1.0-SNAPSHOT
+author: InvalidJoker
+
+main: app.simplecloud.plugin.connection.waterdog.WaterdogServerConnectionPlugin

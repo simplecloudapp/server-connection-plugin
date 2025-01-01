@@ -13,4 +13,4 @@ plugins {
 
 rootProject.name = "server-connection-plugin"
 
-include("connection-shared", "connection-velocity", "connection-bungeecord")
+include("connection-shared", "connection-velocity", "connection-bungeecord", "connection-waterdog")
