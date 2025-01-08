@@ -6,7 +6,7 @@ dependencies {
     api("org.spongepowered:configurate-yaml:4.0.0")
     api("org.spongepowered:configurate-extra-kotlin:4.1.2")
     api("commons-io:commons-io:2.15.1")
-    api(rootProject.libs.simpleCloudPluginApi)
+    api(rootProject.libs.simplecloud.plugin.api)
 }
 
 tasks.named("shadowJar", ShadowJar::class) {

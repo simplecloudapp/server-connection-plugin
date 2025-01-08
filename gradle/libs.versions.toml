@@ -2,14 +2,16 @@
 kotlin = "2.0.20"
 shadow = "8.3.3"
 sonatype-central-portal-publisher = "1.2.3"
-simpleCloudPlugin = "0.0.1-dev.feb0927"
+simplecloud-plugin = "0.0.1-dev.feb0927"
+minotaur = "2.8.7"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-simpleCloudPluginApi = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simpleCloudPlugin" }
+simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 sonatype-central-portal-publisher = { id = "net.thebugmc.gradle.sonatype-central-portal-publisher", version.ref = "sonatype-central-portal-publisher" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
