@@ -37,10 +37,11 @@ class ServerConnectionPlugin<P>(
 
     private fun getConnectionAndName(player: P, targetConnections: List<TargetConnectionConfig>, fromServerName: String = ""): Pair<ConnectionAndTargetConfig, String>? {
         val possibleConnections = getPossibleServerConnections(player)
-        val possibleConnectionsWithTarget = possibleConnections.map { possibleConnection ->
-            val targetConfig= targetConnections
-                .filter { fromServerName.isBlank() || matchesTargetConnection(it, fromServerName) }
-                .firstOrNull { possibleConnection.name == it.name } ?: return null
+        val filteredTargetConnections = targetConnections.asSequence()
+            .filter { fromServerName.isBlank() || matchesTargetConnection(it, fromServerName) }
+        val possibleConnectionsWithTarget = possibleConnections.asSequence().mapNotNull { possibleConnection ->
+            val targetConfig = filteredTargetConnections
+                .firstOrNull { possibleConnection.name == it.name } ?: return@mapNotNull null
             ConnectionAndTargetConfig(possibleConnection, targetConfig)
         }
 
