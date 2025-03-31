@@ -40,3 +40,10 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Extra ###
+connection-gate/server-connection-plugin
+connection-gate/test_impl.go
+
+.idea/
+connection-gate/simplecloud-connection
