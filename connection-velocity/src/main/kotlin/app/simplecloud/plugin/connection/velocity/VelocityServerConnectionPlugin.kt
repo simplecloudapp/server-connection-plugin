@@ -11,6 +11,7 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.KickedFromServerEvent
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
+import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
@@ -25,6 +26,11 @@ import kotlin.jvm.optionals.getOrNull
     name = "simplecloud-connection",
     version = "0.0.1",
     authors = ["Fllip", "hmtill"],
+    dependencies = [
+        Dependency(
+            id = "simplecloud-api"
+        )
+    ],
     url = "https://github.com/theSimpleCloud/server-connection-plugin"
 )
 class VelocityServerConnectionPlugin @Inject constructor(

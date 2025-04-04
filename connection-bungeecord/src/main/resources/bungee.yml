@@ -3,3 +3,5 @@ version: 0.0.1
 author: MrManHD
 
 main: app.simplecloud.plugin.connection.bungeecord.BungeeCordServerConnectionPlugin
+
+depends: [simplecloud-api]

@@ -33,7 +33,7 @@ subprojects {
 
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
-        implementation(rootProject.libs.kotlin.jvm)
+        compileOnly(rootProject.libs.kotlin.jvm)
     }
 
     kotlin {
@@ -68,37 +68,6 @@ subprojects {
         publications {
             create<MavenPublication>("mavenJava") {
                 from(components["java"])
-            }
-        }
-    }
-
-
-    centralPortal {
-        name = project.name
-
-        username = project.findProperty("sonatypeUsername") as? String
-        password = project.findProperty("sonatypePassword") as? String
-
-        pom {
-            name.set("Metrics Droplet")
-            description.set("Keep track of your metrics")
-            url.set("https://github.com/theSimpleCloud/metrics-droplet")
-
-            developers {
-                developer {
-                    id.set("fllipeis")
-                    email.set("p.eistrach@gmail.com")
-                }
-            }
-            licenses {
-                license {
-                    name.set("Apache-2.0")
-                    url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                }
-            }
-            scm {
-                url.set("https://github.com/theSimpleCloud/metrics-droplet.git")
-                connection.set("git:git@github.com:theSimpleCloud/metrics-droplet.git")
             }
         }
     }
