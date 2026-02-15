@@ -5,8 +5,9 @@ plugins {
 
 dependencies {
     api(project(":connection-shared"))
-    compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
-    kapt("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+    compileOnly(libs.simplecloud.api)
+    compileOnly(libs.velocity.api)
+    kapt(libs.velocity.api)
 }
 
 modrinth {
@@ -16,9 +17,6 @@ modrinth {
     versionType.set("beta")
     uploadFile.set(tasks.shadowJar)
     gameVersions.addAll(
-        
-        
-        
         "1.20",
         "1.20.1",
         "1.20.2",
@@ -38,10 +36,7 @@ modrinth {
         "1.21.9",
         "1.21.10",
         "1.21.11",
-
-
-
-    )
+        )
     loaders.add("velocity")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())

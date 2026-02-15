@@ -1,17 +1,55 @@
 [versions]
-kotlin = "2.0.20"
-shadow = "8.3.3"
-sonatype-central-portal-publisher = "1.2.3"
-simplecloud-plugin = "0.0.1-dev.feb0927"
-minotaur = "2.8.7"
+kotlin = "2.2.20"
+kotlin-coroutines = "1.10.2"
+
+shadow = "9.3.1"
+minotaur = "2.8.10"
+
+simplecloud-api = "0.1.0-platform.19-dev.1770725947326-23f3f70"
+simplecloud-plugin-api = "0.0.1-platform.1766000824440-e57ed95"
+
+velocity = "3.5.0-SNAPSHOT"
+bungeecord = "1.21-R0.4"
+waterdog = "2.0.3"
+
+adventure-api = "4.26.1"
+adventure-platform-bungeecord = "4.4.1"
+
+configurate = "4.2.0"
+commons-io = "2.21.0"
+log4j = "2.25.3"
 
 [libraries]
-kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin" }
+kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+
+simplecloud-api = { module = "app.simplecloud.api:api", version.ref = "simplecloud-api" }
+simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin-api" }
+
+velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
+bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
+waterdog-api = { module = "dev.waterdog.waterdogpe:waterdog", version.ref = "waterdog" }
+
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure-api" }
+adventure-platform-bungeecord = { module = "net.kyori:adventure-platform-bungeecord", version.ref = "adventure-platform-bungeecord" }
+adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-api" }
+
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
+configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
+
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+
+[bundles]
+logging = ["log4j-core", "log4j-api", "log4j-slf4j-impl"]
+configurate = ["configurate-kotlin", "configurate-yaml"]
+adventure = ["adventure-api", "adventure-text-minimessage"]
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
-sonatype-central-portal-publisher = { id = "net.thebugmc.gradle.sonatype-central-portal-publisher", version.ref = "sonatype-central-portal-publisher" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }

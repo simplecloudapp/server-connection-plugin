@@ -4,9 +4,9 @@ plugins {
 
 dependencies {
     api(project(":connection-shared"))
-    api("net.kyori:adventure-text-minimessage:4.16.0")
-    api("net.kyori:adventure-platform-bungeecord:4.3.2")
-    compileOnly("net.md-5:bungeecord-api:1.20-R0.2")
+    compileOnly(libs.simplecloud.api)
+    compileOnly(libs.bungeecord.api)
+    implementation(libs.adventure.platform.bungeecord)
 }
 
 modrinth {
@@ -16,9 +16,6 @@ modrinth {
     versionType.set("beta")
     uploadFile.set(tasks.shadowJar)
     gameVersions.addAll(
-        
-        
-        
         "1.20",
         "1.20.1",
         "1.20.2",
@@ -38,10 +35,7 @@ modrinth {
         "1.21.9",
         "1.21.10",
         "1.21.11",
-
-
-
-    )
+        )
     loaders.add("bungeecord")
     loaders.add("waterfall")
     changelog.set("https://docs.simplecloud.app/changelog")
