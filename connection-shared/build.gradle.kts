@@ -3,6 +3,5 @@ dependencies {
     implementation(libs.simplecloud.plugin.api)
     implementation(libs.commons.io)
     implementation(libs.bundles.adventure)
-    implementation(libs.bundles.logging)
     implementation(libs.bundles.configurate)
 }

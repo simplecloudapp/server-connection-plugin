@@ -1,0 +1,5 @@
+name: connection-bungeecord
+version: 1.0.0
+author: MrManHD
+
+main: app.simplecloud.plugin.connection.bungeecord.BungeeCordConnectionPlugin
