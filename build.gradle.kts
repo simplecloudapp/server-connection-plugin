@@ -47,6 +47,7 @@ subprojects {
         compilerOptions {
             apiVersion.set(KotlinVersion.KOTLIN_2_0)
             jvmTarget.set(JvmTarget.JVM_21)
+            freeCompilerArgs.add("-Xannotation-default-target=param-property")
         }
     }
 
@@ -81,6 +82,7 @@ subprojects {
     tasks.named("shadowJar", ShadowJar::class) {
         mergeServiceFiles()
         relocate("org.spongepowered", "app.simplecloud.plugin.relocate.spongepowered")
+        relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.relocate.plugin.api")
         archiveFileName.set("${project.name}.jar")
         archiveClassifier.set("")
     }

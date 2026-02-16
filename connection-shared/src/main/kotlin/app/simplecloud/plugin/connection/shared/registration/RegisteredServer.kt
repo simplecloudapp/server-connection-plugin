@@ -1,5 +1,8 @@
 package app.simplecloud.plugin.connection.shared.registration
 
+/**
+ * Represents a registered server.
+ */
 data class RegisteredServer(
     val serverId: String,
     val numericalId: Int,
