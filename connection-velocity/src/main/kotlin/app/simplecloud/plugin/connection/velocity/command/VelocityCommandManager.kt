@@ -41,9 +41,7 @@ class VelocityCommandManager(
 
     private fun buildBrigadierCommand(entry: CommandEntry): BrigadierCommand {
         val node = BrigadierCommand.literalArgumentBuilder(entry.name)
-            .requires {
-                entry.permission.isEmpty() || it.hasPermission(entry.permission)
-            }
+            .requires { entry.permission.isEmpty() || it.hasPermission(entry.permission) }
             .executes { context ->
                 val player = context.source as? Player ?: return@executes 0
                 handleCommand(player, entry)

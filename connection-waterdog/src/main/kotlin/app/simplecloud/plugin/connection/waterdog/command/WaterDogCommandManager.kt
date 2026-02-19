@@ -11,14 +11,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-import org.apache.logging.log4j.LogManager
 
 class WaterDogCommandManager(
     private val proxy: ProxyServer,
     private val scope: CoroutineScope
 ) {
 
-    private val logger = LogManager.getLogger(WaterDogCommandManager::class.java)
     private val miniMessage = MiniMessage.miniMessage()
     private val registeredCommands = mutableListOf<String>()
 
@@ -26,14 +24,12 @@ class WaterDogCommandManager(
         commandConfig.commands.forEach { entry ->
             registerCommand(entry)
         }
-        logger.info("Registered ${registeredCommands.size} command(s): ${registeredCommands.joinToString(", ")}")
     }
 
     fun unregisterAll() {
         registeredCommands.forEach { name ->
             proxy.commandMap.unregisterCommand(name)
         }
-        logger.info("Unregistered ${registeredCommands.size} command(s)")
         registeredCommands.clear()
     }
 

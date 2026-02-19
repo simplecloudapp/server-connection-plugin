@@ -13,7 +13,7 @@ data class MessageConfig(
     val variables: Map<String, String> = mapOf(),
     val kick: KickMessages = KickMessages()
 ) {
-    private fun buildVariableResolver(): TagResolver {
+    private fun buildResolver(): TagResolver {
         val placeholders = variables.map { (key, value) ->
             Placeholder.parsed(key, value)
         }
@@ -21,13 +21,13 @@ data class MessageConfig(
     }
 
     fun deserialize(raw: String, vararg extra: TagResolver): Component {
-        val resolver = TagResolver.resolver(buildVariableResolver(), *extra)
+        val resolver = TagResolver.resolver(buildResolver(), *extra)
         return MiniMessage.miniMessage().deserialize(raw, resolver)
     }
 }
 
 @ConfigSerializable
 data class KickMessages(
-    val noFallbackServers: String = "<rose>There is no fallback server available.",
-    val noTargetConnection: String = "<rose>You have been disconnected from the network<br>because there are no fallback servers available."
+    val noFallbackServers: String = "<color:#dc2626>There is no fallback server available.",
+    val noTargetConnection: String = "<color:#dc2626>You have been disconnected from the network<br>because there are no fallback servers available."
 )

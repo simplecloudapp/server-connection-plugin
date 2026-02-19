@@ -28,6 +28,10 @@ class ConnectionPlugin(
     val messageConfig: MessageConfig get() = config.load<MessageConfig>("messages") ?: MessageConfig()
 
     fun start() {
+        config.save("config", connectionConfig)
+        config.save("commands", commandConfig)
+        config.save("messages", messageConfig)
+
         loadExistingServers()
         listener.start()
     }

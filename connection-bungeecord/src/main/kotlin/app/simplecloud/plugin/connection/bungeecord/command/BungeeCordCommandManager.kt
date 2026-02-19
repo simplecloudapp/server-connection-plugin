@@ -30,14 +30,12 @@ class BungeeCordCommandManager(
         commandConfig.commands.forEach { entry ->
             registerCommand(entry)
         }
-        logger.info("Registered ${registeredCommands.size} command(s): ${registeredCommands.joinToString(", ")}")
     }
 
     fun unregisterAll() {
         registeredCommands.forEach { _ ->
             proxy.pluginManager.unregisterCommands(plugin)
         }
-        logger.info("Unregistered ${registeredCommands.size} command(s)")
         registeredCommands.clear()
     }
 

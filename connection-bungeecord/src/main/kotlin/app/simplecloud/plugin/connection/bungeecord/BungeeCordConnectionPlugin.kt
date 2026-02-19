@@ -25,12 +25,9 @@ class BungeeCordConnectionPlugin : Plugin() {
     )
 
     override fun onEnable() {
-        logger.info("Initialize bungeecord-connection plugin...")
-        connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
-        connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
-
         cleanupServers()
         registerAdditionalServers()
+
         commandManager.registerAll(connectionPlugin.commandConfig)
 
         registerListener()
@@ -41,7 +38,6 @@ class BungeeCordConnectionPlugin : Plugin() {
     }
 
     override fun onDisable() {
-        logger.info("Shutting down bungeecord-connection plugin...")
         commandManager.unregisterAll()
         scope.launch {
             connectionPlugin.shutdown()

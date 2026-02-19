@@ -21,6 +21,6 @@ data class CommandEntry(
 
 @ConfigSerializable
 data class CommandMessages(
-    val alreadyConnected: String = "<color:#dc2626>You are already connected to this lobby!",
+    val alreadyConnected: String = "<color:#dc2626>You are already connected to this server!",
     val noTargetConnectionFound: String = "<color:#dc2626>Couldn't find a target server!"
 )

@@ -17,6 +17,7 @@ class WaterDogConnectionPlugin : Plugin() {
     private val api = CloudApi.create()
     private val logger = LogManager.getLogger(WaterDogConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val commandManager = WaterDogCommandManager(proxy, scope)
 
     val connectionPlugin = ConnectionPlugin(
         dataFolder.toString(),
@@ -24,19 +25,10 @@ class WaterDogConnectionPlugin : Plugin() {
         WaterDogServerRegistry(this, proxy)
     )
 
-    private val commandManager = WaterDogCommandManager(
-        proxy,
-        scope
-    )
-
     override fun onEnable() {
-        logger.info("Initialize waterdog-connection plugin...")
-        connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
-        connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
-        connectionPlugin.config.save("messages", connectionPlugin.messageConfig)
-
         cleanupServers()
         registerAdditionalServers()
+
         commandManager.registerAll(connectionPlugin.commandConfig)
 
         proxy.joinHandler = WaterdogJoinHandler { connectionPlugin.connectionConfig }
@@ -48,7 +40,6 @@ class WaterDogConnectionPlugin : Plugin() {
     }
 
     override fun onDisable() {
-        logger.info("Shutting down waterdog-connection plugin...")
         commandManager.unregisterAll()
         scope.launch {
             connectionPlugin.shutdown()

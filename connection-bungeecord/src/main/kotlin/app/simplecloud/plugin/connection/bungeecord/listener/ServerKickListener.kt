@@ -41,11 +41,11 @@ class ServerKickListener(
             return
         }
 
-        val candidates = proxy.servers.values
+        val servers = proxy.servers.values
             .filter { entry.serverNameMatcher.matches(it.name) }
             .filter { !it.name.equals(kickedFromServerName, ignoreCase = true) }
 
-        val targetServer = candidates.randomOrNull()
+        val targetServer = servers.randomOrNull()
 
         if (targetServer == null) {
             event.isCancelled = true

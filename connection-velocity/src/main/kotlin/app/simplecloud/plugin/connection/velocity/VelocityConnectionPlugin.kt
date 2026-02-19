@@ -27,8 +27,8 @@ import java.nio.file.Path
     url = "https://github.com/simplecloudapp/server-connection-plugin"
 )
 class VelocityConnectionPlugin @Inject constructor(
+    @DataDirectory val dataDirectory: Path,
     private val server: ProxyServer,
-    @DataDirectory val dataDirectory: Path
 ) {
 
     private val api = CloudApi.create()
@@ -44,12 +44,11 @@ class VelocityConnectionPlugin @Inject constructor(
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
-        logger.info("Initialize velocity-connection plugin...")
-        connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
-
         cleanupServers()
         registerAdditionalServers()
+
         commandManager.registerAll(connectionPlugin.commandConfig)
+
         registerListeners()
 
         scope.launch {
@@ -59,7 +58,6 @@ class VelocityConnectionPlugin @Inject constructor(
 
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
-        logger.info("Shutting down velocity-connection plugin...")
         commandManager.unregisterAll()
         scope.launch {
             connectionPlugin.shutdown()
@@ -69,7 +67,6 @@ class VelocityConnectionPlugin @Inject constructor(
 
     private fun registerListeners() {
         val eventManager = server.eventManager
-
         eventManager.register(this, PlayerChooseInitialServerListener(server) { connectionPlugin.connectionConfig })
         eventManager.register(this, KickedFromServerListener(server, scope, { connectionPlugin.connectionConfig }, { connectionPlugin.messageConfig }))
     }

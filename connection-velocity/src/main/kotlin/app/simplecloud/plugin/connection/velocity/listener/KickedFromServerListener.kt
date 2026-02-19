@@ -44,11 +44,11 @@ class KickedFromServerListener(
             return
         }
 
-        val candidates = proxyServer.allServers
+        val servers = proxyServer.allServers
             .filter { entry.serverNameMatcher.matches(it.serverInfo.name) }
             .filter { !it.serverInfo.name.equals(kickedFromServerName, ignoreCase = true) }
 
-        val targetServer = candidates.randomOrNull()
+        val targetServer = servers.randomOrNull()
 
         if (targetServer == null) {
             event.result = KickedFromServerEvent.DisconnectPlayer.create(messages.deserialize(messages.kick.noFallbackServers))
