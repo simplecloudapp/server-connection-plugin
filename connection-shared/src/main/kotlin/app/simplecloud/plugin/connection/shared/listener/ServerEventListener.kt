@@ -54,13 +54,24 @@ class ServerEventListener(
 
     private fun register(server: RegisteredServer) {
         if (server.blueprintConfigurator == "standalone") return
-        logger.info("Registering server ${server.serverId}...")
+
+        if (server.persistent) {
+            logger.info("Registering server ${server.serverId} (${server.serverBaseName})...")
+        } else {
+            logger.info("Registering server ${server.serverId} (${server.serverBaseName}-${server.numericalId})...")
+        }
+
         registry.register(server)
     }
 
     private fun unregister(server: RegisteredServer) {
         if (registry.getRegistered().containsKey(server.serverId)) {
-            logger.info("Unregistering server ${server.serverId}...")
+            if (server.persistent) {
+                logger.info("Unregistering server ${server.serverId} (${server.serverBaseName})...")
+            } else {
+                logger.info("Unregistering server ${server.serverId} (${server.serverBaseName}-${server.numericalId})...")
+            }
+
             registry.unregister(server)
         }
     }
