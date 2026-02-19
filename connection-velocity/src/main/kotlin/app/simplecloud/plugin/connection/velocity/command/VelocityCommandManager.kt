@@ -6,18 +6,13 @@ import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import net.kyori.adventure.text.minimessage.MiniMessage
-import org.apache.logging.log4j.LogManager
 
 class VelocityCommandManager(
     private val server: ProxyServer,
     private val plugin: VelocityConnectionPlugin,
-    private val scope: CoroutineScope
 ) {
 
-    private val logger = LogManager.getLogger(VelocityCommandManager::class.java)
     private val miniMessage = MiniMessage.miniMessage()
     private val registeredCommands = mutableListOf<String>()
 
@@ -25,13 +20,11 @@ class VelocityCommandManager(
         commandConfig.commands.forEach { entry ->
             registerCommand(entry)
         }
-        logger.info("Registered ${registeredCommands.size} command(s): ${registeredCommands.joinToString(", ")}")
     }
 
     fun unregisterAll() {
         val commandManager = server.commandManager
         registeredCommands.forEach { name -> commandManager.unregister(name) }
-        logger.info("Unregistered ${registeredCommands.size} command(s)")
         registeredCommands.clear()
     }
 
@@ -53,7 +46,7 @@ class VelocityCommandManager(
             }
             .executes { context ->
                 val player = context.source as? Player ?: return@executes 0
-                scope.launch { handleCommand(player, entry) }
+                handleCommand(player, entry)
                 1
             }
             .build()

@@ -3,6 +3,8 @@ package app.simplecloud.plugin.connection.velocity
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import app.simplecloud.plugin.connection.velocity.command.VelocityCommandManager
+import app.simplecloud.plugin.connection.velocity.listener.KickedFromServerListener
+import app.simplecloud.plugin.connection.velocity.listener.PlayerChooseInitialServerListener
 import app.simplecloud.plugin.connection.velocity.registration.VelocityServerRegistry
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
@@ -32,6 +34,7 @@ class VelocityConnectionPlugin @Inject constructor(
     private val api = CloudApi.create()
     private val logger = LogManager.getLogger(VelocityConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val commandManager = VelocityCommandManager(server, this)
 
     val connectionPlugin = ConnectionPlugin(
         dataDirectory.toString(),
@@ -39,21 +42,15 @@ class VelocityConnectionPlugin @Inject constructor(
         VelocityServerRegistry(this, server)
     )
 
-    private val commandManager = VelocityCommandManager(
-        server,
-        this,
-        scope
-    )
-
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         logger.info("Initialize velocity-connection plugin...")
         connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
-        connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
 
         cleanupServers()
         registerAdditionalServers()
         commandManager.registerAll(connectionPlugin.commandConfig)
+        registerListeners()
 
         scope.launch {
             connectionPlugin.start()
@@ -68,6 +65,13 @@ class VelocityConnectionPlugin @Inject constructor(
             connectionPlugin.shutdown()
         }
         scope.cancel()
+    }
+
+    private fun registerListeners() {
+        val eventManager = server.eventManager
+
+        eventManager.register(this, PlayerChooseInitialServerListener(server) { connectionPlugin.connectionConfig })
+        eventManager.register(this, KickedFromServerListener(server, scope, { connectionPlugin.connectionConfig }, { connectionPlugin.messageConfig }))
     }
 
     private fun cleanupServers() {

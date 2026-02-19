@@ -2,6 +2,8 @@ package app.simplecloud.plugin.connection.bungeecord
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.bungeecord.command.BungeeCordCommandManager
+import app.simplecloud.plugin.connection.bungeecord.listener.ServerConnectListener
+import app.simplecloud.plugin.connection.bungeecord.listener.ServerKickListener
 import app.simplecloud.plugin.connection.bungeecord.registration.BungeeCordServerRegistry
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import kotlinx.coroutines.*
@@ -14,17 +16,12 @@ class BungeeCordConnectionPlugin : Plugin() {
     private val api = CloudApi.create()
     private val logger = LogManager.getLogger(BungeeCordConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val commandManager = BungeeCordCommandManager(proxy, this, scope)
 
     val connectionPlugin = ConnectionPlugin(
         dataFolder.toString(),
         api,
         BungeeCordServerRegistry(this, proxy)
-    )
-
-    private val commandManager = BungeeCordCommandManager(
-        proxy,
-        this,
-        scope
     )
 
     override fun onEnable() {
@@ -35,6 +32,8 @@ class BungeeCordConnectionPlugin : Plugin() {
         cleanupServers()
         registerAdditionalServers()
         commandManager.registerAll(connectionPlugin.commandConfig)
+
+        registerListener()
 
         scope.launch {
             connectionPlugin.start()
@@ -70,5 +69,10 @@ class BungeeCordConnectionPlugin : Plugin() {
             proxy.servers[it.name] = info
             logger.info("Additional server ${info.name} has been registered!")
         }
+    }
+
+    private fun registerListener() {
+        proxy.pluginManager.registerListener(this, ServerConnectListener(proxy) { connectionPlugin.connectionConfig })
+        proxy.pluginManager.registerListener(this, ServerKickListener(proxy, { connectionPlugin.connectionConfig }, { connectionPlugin.messageConfig }))
     }
 }

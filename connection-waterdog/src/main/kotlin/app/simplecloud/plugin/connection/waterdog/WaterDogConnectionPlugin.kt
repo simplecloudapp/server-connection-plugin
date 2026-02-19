@@ -3,6 +3,8 @@ package app.simplecloud.plugin.connection.waterdog
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import app.simplecloud.plugin.connection.waterdog.command.WaterDogCommandManager
+import app.simplecloud.plugin.connection.waterdog.connection.WaterdogJoinHandler
+import app.simplecloud.plugin.connection.waterdog.connection.WaterdogReconnectHandler
 import app.simplecloud.plugin.connection.waterdog.registration.WaterDogServerRegistry
 import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import dev.waterdog.waterdogpe.plugin.Plugin
@@ -31,10 +33,14 @@ class WaterDogConnectionPlugin : Plugin() {
         logger.info("Initialize waterdog-connection plugin...")
         connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
         connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
+        connectionPlugin.config.save("messages", connectionPlugin.messageConfig)
 
         cleanupServers()
         registerAdditionalServers()
         commandManager.registerAll(connectionPlugin.commandConfig)
+
+        proxy.joinHandler = WaterdogJoinHandler { connectionPlugin.connectionConfig }
+        proxy.reconnectHandler = WaterdogReconnectHandler({ connectionPlugin.connectionConfig }, { connectionPlugin.messageConfig })
 
         scope.launch {
             connectionPlugin.start()

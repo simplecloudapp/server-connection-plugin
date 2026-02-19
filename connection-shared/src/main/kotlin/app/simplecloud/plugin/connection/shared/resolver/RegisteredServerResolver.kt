@@ -5,8 +5,12 @@ import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 
 object RegisteredServerResolver {
+
+    private val serializer = PlainTextComponentSerializer.plainText()
+
     fun resolve(server: RegisteredServer, config: RegistrationConfig): String {
         val pattern = if (!server.persistent) config.serverNamePattern else config.persistentServerNamePattern
 
@@ -20,8 +24,7 @@ object RegisteredServerResolver {
             }.toTypedArray()
         )
 
-        return MiniMessage.miniMessage().stripTags(
-            MiniMessage.miniMessage().deserialize(pattern, resolver).toString()
-        )
+        val component = MiniMessage.miniMessage().deserialize(pattern, resolver)
+        return serializer.serialize(component)
     }
 }

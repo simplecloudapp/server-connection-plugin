@@ -6,6 +6,7 @@ import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.api.server.ServerState
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
+import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.config.YamlConfig
 import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
@@ -22,10 +23,9 @@ class ConnectionPlugin(
 
     val config = YamlConfig(dir)
 
-    val connectionConfig: ConnectionConfig
-        get() = config.load<ConnectionConfig>("config") ?: ConnectionConfig()
-    val commandConfig: CommandConfig
-        get() = config.load<CommandConfig>("commands") ?: CommandConfig()
+    val connectionConfig: ConnectionConfig get() = config.load<ConnectionConfig>("config") ?: ConnectionConfig()
+    val commandConfig: CommandConfig get() = config.load<CommandConfig>("commands") ?: CommandConfig()
+    val messageConfig: MessageConfig get() = config.load<MessageConfig>("messages") ?: MessageConfig()
 
     fun start() {
         loadExistingServers()
@@ -46,5 +46,6 @@ class ConnectionPlugin(
             logger.info("Found ${servers.size} servers")
             servers.forEach { listener.register(it) }
         }
+
     }
 }
