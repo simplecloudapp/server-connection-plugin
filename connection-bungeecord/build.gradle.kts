@@ -7,6 +7,7 @@ dependencies {
     compileOnly(libs.simplecloud.api)
     compileOnly(libs.bungeecord.api)
     implementation(libs.adventure.platform.bungeecord)
+    implementation(libs.bundles.adventure)
 }
 
 modrinth {

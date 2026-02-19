@@ -2,6 +2,7 @@ package app.simplecloud.plugin.connection.velocity
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
+import app.simplecloud.plugin.connection.velocity.command.VelocityCommandManager
 import app.simplecloud.plugin.connection.velocity.registration.VelocityServerRegistry
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
@@ -38,12 +39,22 @@ class VelocityConnectionPlugin @Inject constructor(
         VelocityServerRegistry(this, server)
     )
 
+    private val commandManager = VelocityCommandManager(
+        server,
+        this,
+        scope
+    )
+
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         logger.info("Initialize velocity-connection plugin...")
         connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
+        connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
+
         cleanupServers()
         registerAdditionalServers()
+        commandManager.registerAll(connectionPlugin.commandConfig)
+
         scope.launch {
             connectionPlugin.start()
         }
@@ -52,6 +63,7 @@ class VelocityConnectionPlugin @Inject constructor(
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
         logger.info("Shutting down velocity-connection plugin...")
+        commandManager.unregisterAll()
         scope.launch {
             connectionPlugin.shutdown()
         }

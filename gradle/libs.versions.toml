@@ -34,6 +34,7 @@ waterdog-api = { module = "dev.waterdog.waterdogpe:waterdog", version.ref = "wat
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure-api" }
 adventure-platform-bungeecord = { module = "net.kyori:adventure-platform-bungeecord", version.ref = "adventure-platform-bungeecord" }
 adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-api" }
+adventure-text-serializer-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure-api" }
 
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 
@@ -47,7 +48,7 @@ log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", versi
 [bundles]
 logging = ["log4j-core", "log4j-api", "log4j-slf4j-impl"]
 configurate = ["configurate-kotlin", "configurate-yaml"]
-adventure = ["adventure-api", "adventure-text-minimessage"]
+adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-plain"]
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

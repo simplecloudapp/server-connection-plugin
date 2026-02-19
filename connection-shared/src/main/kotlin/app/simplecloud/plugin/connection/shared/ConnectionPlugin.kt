@@ -4,6 +4,7 @@ import app.simplecloud.api.CloudApi
 import app.simplecloud.api.group.GroupServerType
 import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.api.server.ServerState
+import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.YamlConfig
 import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
@@ -11,24 +12,27 @@ import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import org.apache.logging.log4j.LogManager
 
 class ConnectionPlugin(
-    private val dir: String,
+    dir: String,
     private val api: CloudApi,
-    private val registry: ServerRegistry,
+    registry: ServerRegistry,
 ) {
 
     private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
     private val listener = ServerEventListener(api, registry)
 
     val config = YamlConfig(dir)
+
     val connectionConfig: ConnectionConfig
         get() = config.load<ConnectionConfig>("config") ?: ConnectionConfig()
+    val commandConfig: CommandConfig
+        get() = config.load<CommandConfig>("commands") ?: CommandConfig()
 
-    suspend fun start() {
+    fun start() {
         loadExistingServers()
         listener.start()
     }
 
-    suspend fun shutdown() {
+    fun shutdown() {
         config.close()
         listener.stop()
     }

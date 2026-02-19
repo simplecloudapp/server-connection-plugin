@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.connection.bungeecord
 
 import app.simplecloud.api.CloudApi
+import app.simplecloud.plugin.connection.bungeecord.command.BungeeCordCommandManager
 import app.simplecloud.plugin.connection.bungeecord.registration.BungeeCordServerRegistry
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import kotlinx.coroutines.*
@@ -20,11 +21,21 @@ class BungeeCordConnectionPlugin : Plugin() {
         BungeeCordServerRegistry(this, proxy)
     )
 
+    private val commandManager = BungeeCordCommandManager(
+        proxy,
+        this,
+        scope
+    )
+
     override fun onEnable() {
         logger.info("Initialize bungeecord-connection plugin...")
         connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
+        connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
+
         cleanupServers()
         registerAdditionalServers()
+        commandManager.registerAll(connectionPlugin.commandConfig)
+
         scope.launch {
             connectionPlugin.start()
         }
@@ -32,6 +43,7 @@ class BungeeCordConnectionPlugin : Plugin() {
 
     override fun onDisable() {
         logger.info("Shutting down bungeecord-connection plugin...")
+        commandManager.unregisterAll()
         scope.launch {
             connectionPlugin.shutdown()
         }

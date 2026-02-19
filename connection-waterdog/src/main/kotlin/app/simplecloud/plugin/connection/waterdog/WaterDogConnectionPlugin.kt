@@ -2,6 +2,7 @@ package app.simplecloud.plugin.connection.waterdog
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
+import app.simplecloud.plugin.connection.waterdog.command.WaterDogCommandManager
 import app.simplecloud.plugin.connection.waterdog.registration.WaterDogServerRegistry
 import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import dev.waterdog.waterdogpe.plugin.Plugin
@@ -21,11 +22,20 @@ class WaterDogConnectionPlugin : Plugin() {
         WaterDogServerRegistry(this, proxy)
     )
 
+    private val commandManager = WaterDogCommandManager(
+        proxy,
+        scope
+    )
+
     override fun onEnable() {
         logger.info("Initialize waterdog-connection plugin...")
         connectionPlugin.config.save("config", connectionPlugin.connectionConfig)
+        connectionPlugin.config.save("commands", connectionPlugin.commandConfig)
+
         cleanupServers()
         registerAdditionalServers()
+        commandManager.registerAll(connectionPlugin.commandConfig)
+
         scope.launch {
             connectionPlugin.start()
         }
@@ -33,6 +43,7 @@ class WaterDogConnectionPlugin : Plugin() {
 
     override fun onDisable() {
         logger.info("Shutting down waterdog-connection plugin...")
+        commandManager.unregisterAll()
         scope.launch {
             connectionPlugin.shutdown()
         }
