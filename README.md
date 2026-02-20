@@ -24,15 +24,19 @@
 
 > All information about this project can be found in our detailed [documentation][docs-thisproject].
 
-The Server Connection Plugin provides comprehensive player connection management for your network, including network join handling, fallback servers, and navigation commands.
+The Server Connection Plugin provides comprehensive player connection management for your network. It automatically registers SimpleCloud v3 servers on your proxy.
 
 ## Features
 
 - [x] **Velocity**
 - [x] **BungeeCord**
+- [x] **Waterdog PE**
 - [ ] **Gate**
-- [x] **Connection targets**: Connection targets define server groups that players can connect to
-- [x] **Matcher Operations**: Match Server names by Operations
+- [x] **Server registration**: Automatically registers SimpleCloud servers on your proxy
+- [x] **Additional servers**: Add non network servers manually
+- [x] **Connection targets**: Define server groups and persistent servers that players can connect to
+- [x] **Fallback servers**: Automatically redirect players when a server becomes unavailable
+- [x] **Matcher Operations**: Match server names by operations
 
 ## Contributing
 
@@ -50,11 +54,11 @@ This repository is licensed under [Apache 2.0][license].
 
 [banner]: https://github.com/simplecloudapp/branding/blob/main/readme/banner/plugin/server-connection.png?raw=true
 
-[issue-bug-report]: https://github.com/theSimpleCloud/server-connection-plugin/issues/new?labels=bug&projects=template=01_BUG-REPORT.yml&title=%5BBUG%5D+%3Ctitle%3E
+[issue-bug-report]: https://github.com/simplecloudapp/server-connection-plugin/issues/new?labels=bug&projects=template=01_BUG-REPORT.yml&title=%5BBUG%5D+%3Ctitle%3E
 
-[issue-feature-request]: https://github.com/theSimpleCloud/server-connection-plugin/discussions/new?category=ideas
+[issue-feature-request]: https://github.com/simplecloudapp/server-connection-plugin/discussions/new?category=ideas
 
-[docs-thisproject]: https://docs.simplecloud.app/plugin/server-connection
+[docs-thisproject]: https://docs.simplecloud.app/en/manual/plugin/server-connection
 
 [docs-contribute]: https://docs.simplecloud.app/contribute
 
