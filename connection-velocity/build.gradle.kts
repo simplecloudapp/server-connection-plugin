@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":connection-shared"))
+    implementation(project(":connection-shared"))
     compileOnly(libs.simplecloud.api)
     compileOnly(libs.velocity.api)
     kapt(libs.velocity.api)

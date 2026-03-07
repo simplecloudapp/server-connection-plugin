@@ -20,6 +20,7 @@ open class YamlConfig(private val dirPath: String) {
         protected val logger: Logger = LogManager.getLogger(YamlConfig::class.java)
     }
 
+
     private val watchService = FileSystems.getDefault().newWatchService()
     private val reloadListeners = ConcurrentHashMap<String, MutableList<(Any) -> Unit>>()
     private val lastReload = ConcurrentHashMap<String, Long>()

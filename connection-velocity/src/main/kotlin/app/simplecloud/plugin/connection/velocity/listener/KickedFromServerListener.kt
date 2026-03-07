@@ -1,60 +1,60 @@
 package app.simplecloud.plugin.connection.velocity.listener
 
-import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
-import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
-import com.velocitypowered.api.event.EventTask
-import com.velocitypowered.api.event.PostOrder
+import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.KickedFromServerEvent
 import com.velocitypowered.api.proxy.ProxyServer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.future.future
 
 class KickedFromServerListener(
-    private val proxyServer: ProxyServer,
-    private val scope: CoroutineScope,
-    private val config: () -> ConnectionConfig,
-    private val messageConfig: () -> MessageConfig
+    private val plugin: VelocityConnectionPlugin,
+    private val proxy: ProxyServer,
 ) {
 
-    @Subscribe(order = PostOrder.NORMAL)
-    fun onKickedFromServer(event: KickedFromServerEvent): EventTask {
-        return EventTask.resumeWhenComplete(
-            scope.future { handleFallback(event) }
-        )
-    }
+    @Subscribe
+    fun onKickedFromServer(event: KickedFromServerEvent) {
+        val config = plugin.connectionPlugin.connectionConfig
+        val messages = plugin.connectionPlugin.messageConfig
 
-    private fun handleFallback(event: KickedFromServerEvent) {
-        val currentConfig = config()
-        val messages = messageConfig()
+        if (!config.fallback.enabled) return
 
-        if (!currentConfig.fallback.enabled) return
+        val kickedServerName = event.server.serverInfo.name
+        val serverNames = proxy.allServers.map { it.serverInfo.name }
+        val sortedTargets = config.fallback.targetConnections.sortedByDescending { it.priority }
 
-        val kickedFromServerName = event.server.serverInfo.name
-        val resolver = ConnectionResolver(currentConfig)
+        for (target in sortedTargets) {
+            if (target.from.isNotEmpty()) {
+                val isFromAllowed = target.from.any { connectionName ->
+                    ConnectionResolver.isServerInConnection(
+                        kickedServerName, connectionName, config.connections, serverNames
+                    )
+                }
+                if (!isFromAllowed) continue
+            }
 
-        val entry = resolver.resolve(
-            targetConnections = currentConfig.fallback.targetConnections,
-            currentServerName = kickedFromServerName
-        )
+            val connection = ConnectionResolver.findConnection(target.name, config.connections) ?: continue
 
-        if (entry == null) {
-            event.result = KickedFromServerEvent.DisconnectPlayer.create(messages.deserialize(messages.kick.noTargetConnection))
+            val failedRule = ConnectionResolver.checkRules(connection) { permission ->
+                event.player.hasPermission(permission)
+            }
+            if (failedRule != null) continue
+
+            val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
+            if (matchingNames.isEmpty()) continue
+
+            val server = matchingNames
+                .mapNotNull { proxy.getServer(it).orElse(null) }
+                .filter { it.serverInfo.name != kickedServerName }
+                .minByOrNull { it.playersConnected.size }
+                ?: continue
+
+            event.result = KickedFromServerEvent.RedirectPlayer.create(server)
             return
         }
 
-        val servers = proxyServer.allServers
-            .filter { entry.serverNameMatcher.matches(it.serverInfo.name) }
-            .filter { !it.serverInfo.name.equals(kickedFromServerName, ignoreCase = true) }
-
-        val targetServer = servers.randomOrNull()
-
-        if (targetServer == null) {
-            event.result = KickedFromServerEvent.DisconnectPlayer.create(messages.deserialize(messages.kick.noFallbackServers))
-            return
-        }
-
-        event.result = KickedFromServerEvent.RedirectPlayer.create(targetServer, event.serverKickReason.orElse(null))
+        event.result = KickedFromServerEvent.DisconnectPlayer.create(
+            messages.send(messages.kick.noFallbackServers)
+        )
     }
+
 }

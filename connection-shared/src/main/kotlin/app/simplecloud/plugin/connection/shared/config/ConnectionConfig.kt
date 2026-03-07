@@ -1,16 +1,18 @@
 package app.simplecloud.plugin.connection.shared.config
 
+import app.simplecloud.plugin.api.shared.matcher.OperationType
 import app.simplecloud.plugin.api.shared.matcher.ServerMatcherConfiguration
 import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
+import app.simplecloud.plugin.connection.shared.utilities.DefaultConfigs
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class ConnectionConfig(
     val version: Char = ConfigVersion.VERSION,
     val registration: RegistrationConfig = RegistrationConfig(),
-    val connections: List<ConnectionEntry> = listOf(ConnectionEntry()),
-    val networkJoinTargets: NetworkJoinTargets = NetworkJoinTargets(),
-    val fallback: FallbackConfig = FallbackConfig(),
+    val connections: List<ConnectionEntry> = DefaultConfigs.CONNECTIONS,
+    val networkJoinTargets: NetworkJoinTargetsConfig = DefaultConfigs.NETWORK_JOIN_TARGETS,
+    val fallback: FallbackConfig = DefaultConfigs.FALLBACK,
 )
 
 @ConfigSerializable
@@ -18,7 +20,7 @@ data class RegistrationConfig(
     val enabled: Boolean = true,
     val serverNamePattern: String = "<group>-<numerical_id>",
     val persistentServerNamePattern: String = "<name>",
-    val ignoreServerGroups: List<String> = listOf(),
+    val ignoreServerGroupsAndPersistentServers: List<String> = listOf(),
     val additionalServers: List<RegistrationServer> = listOf()
 )
 
@@ -31,30 +33,47 @@ data class RegistrationServer(
 
 @ConfigSerializable
 data class ConnectionEntry(
-    val name: String = "lobby",
+    val name: String = "",
     val serverNameMatcher: ServerMatcherConfiguration = ServerMatcherConfiguration(),
-    val rules: List<String> = listOf()
+    val rules: List<ConnectionRule> = listOf(),
 )
 
 @ConfigSerializable
-data class NetworkJoinTargets(
-    val enabled: Boolean = true,
-    val targetConnections: List<TargetConnection> = listOf(
-        TargetConnection(name = "lobby", priority = 0)
-    )
+data class ConnectionRule(
+    val type: RuleType = RuleType.PERMISSION,
+    val name: String = "",
+    val value: String = "",
+    val operation: OperationType = OperationType.EQUALS,
+    val negate: Boolean = false,
+    val bypassPermission: String = "",
 )
 
+enum class RuleType {
+    PERMISSION,
+    ENV
+}
+
 @ConfigSerializable
-data class FallbackConfig(
+data class NetworkJoinTargetsConfig(
     val enabled: Boolean = true,
-    val targetConnections: List<TargetConnection> = listOf(
-        TargetConnection(name = "lobby", priority = 0)
-    )
+    val targetConnections: List<TargetConnection> = listOf(),
 )
 
 @ConfigSerializable
 data class TargetConnection(
     val name: String = "",
     val priority: Int = 0,
-    val from: List<String> = listOf()
+)
+
+@ConfigSerializable
+data class FallbackConfig(
+    val enabled: Boolean = true,
+    val targetConnections: List<FallbackTargetConnection> = listOf(),
+)
+
+@ConfigSerializable
+data class FallbackTargetConnection(
+    val name: String = "",
+    val priority: Int = 0,
+    val from: List<String> = listOf(),
 )

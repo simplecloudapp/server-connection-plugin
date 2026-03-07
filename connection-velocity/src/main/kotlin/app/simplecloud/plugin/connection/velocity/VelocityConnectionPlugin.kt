@@ -20,8 +20,8 @@ import java.net.InetSocketAddress
 import java.nio.file.Path
 
 @Plugin(
-    id = "connection-velocity",
-    name = "connection-velocity",
+    id = "simplecloud-connection",
+    name = "simplecloud-connection",
     version = "1.0.0",
     authors = ["Fllip", "hmtill"],
     url = "https://github.com/simplecloudapp/server-connection-plugin"
@@ -34,22 +34,21 @@ class VelocityConnectionPlugin @Inject constructor(
     private val api = CloudApi.create()
     private val logger = LogManager.getLogger(VelocityConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val commandManager = VelocityCommandManager(server, this)
+    private val registry = VelocityServerRegistry(this, server)
+    private val commandManager = VelocityCommandManager(this, server)
 
     val connectionPlugin = ConnectionPlugin(
         dataDirectory.toString(),
         api,
-        VelocityServerRegistry(this, server)
+        registry
     )
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         cleanupServers()
         registerAdditionalServers()
-
-        commandManager.registerAll(connectionPlugin.commandConfig)
-
         registerListeners()
+        registerCommands()
 
         scope.launch {
             connectionPlugin.start()
@@ -58,31 +57,36 @@ class VelocityConnectionPlugin @Inject constructor(
 
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
-        commandManager.unregisterAll()
-        scope.launch {
-            connectionPlugin.shutdown()
-        }
+        commandManager.unregisterCommands()
+        scope.launch { connectionPlugin.shutdown() }
         scope.cancel()
     }
 
-    private fun registerListeners() {
-        val eventManager = server.eventManager
-        eventManager.register(this, PlayerChooseInitialServerListener(server) { connectionPlugin.connectionConfig })
-        eventManager.register(this, KickedFromServerListener(server, scope, { connectionPlugin.connectionConfig }, { connectionPlugin.messageConfig }))
-    }
-
     private fun cleanupServers() {
-        server.allServers.forEach {
-            server.unregisterServer(it.serverInfo)
+        if (connectionPlugin.connectionConfig.registration.enabled) {
+            server.allServers.forEach {
+                server.unregisterServer(it.serverInfo)
+            }
         }
     }
 
     private fun registerAdditionalServers() {
-        val additionalServers = connectionPlugin.connectionConfig.registration.additionalServers
-        additionalServers.forEach {
-            val info = ServerInfo(it.name, InetSocketAddress.createUnresolved(it.address, it.port.toInt()))
-            server.registerServer(info)
-            logger.info("Additional server ${info.name} has been registered!")
+        if (connectionPlugin.connectionConfig.registration.enabled) {
+            val additionalServers = connectionPlugin.connectionConfig.registration.additionalServers
+            additionalServers.forEach {
+                val info = ServerInfo(it.name, InetSocketAddress.createUnresolved(it.address, it.port.toInt()))
+                server.registerServer(info)
+                logger.info("Additional server ${info.name} has been registered!")
+            }
         }
+    }
+
+    private fun registerListeners() {
+        server.eventManager.register(this, PlayerChooseInitialServerListener(this, server))
+        server.eventManager.register(this, KickedFromServerListener(this, server))
+    }
+
+    private fun registerCommands() {
+        commandManager.registerCommands()
     }
 }

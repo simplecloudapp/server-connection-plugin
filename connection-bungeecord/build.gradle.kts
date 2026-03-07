@@ -3,11 +3,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":connection-shared"))
-    compileOnly(libs.simplecloud.api)
-    compileOnly(libs.bungeecord.api)
+    implementation(project(":connection-shared"))
     implementation(libs.adventure.platform.bungeecord)
     implementation(libs.bundles.adventure)
+    compileOnly(libs.simplecloud.api)
+    compileOnly(libs.bungeecord.api)
 }
 
 modrinth {

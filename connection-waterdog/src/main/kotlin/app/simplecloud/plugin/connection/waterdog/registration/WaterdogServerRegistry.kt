@@ -3,13 +3,13 @@ package app.simplecloud.plugin.connection.waterdog.registration
 import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import app.simplecloud.plugin.connection.shared.resolver.RegisteredServerResolver
-import app.simplecloud.plugin.connection.waterdog.WaterDogConnectionPlugin
+import app.simplecloud.plugin.connection.waterdog.WaterdogConnectionPlugin
 import dev.waterdog.waterdogpe.ProxyServer
 import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import java.net.InetSocketAddress
 
-class WaterDogServerRegistry(
-    private val plugin: WaterDogConnectionPlugin,
+class WaterdogServerRegistry(
+    private val plugin: WaterdogConnectionPlugin,
     private val proxy: ProxyServer
 ) : ServerRegistry {
 

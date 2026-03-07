@@ -1,61 +1,63 @@
 package app.simplecloud.plugin.connection.bungeecord.listener
 
-import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
-import app.simplecloud.plugin.connection.shared.config.MessageConfig
+import app.simplecloud.plugin.connection.bungeecord.BungeeCordConnectionPlugin
 import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
-import net.md_5.bungee.api.ProxyServer
+import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.event.ServerKickEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
-import net.md_5.bungee.event.EventPriority
 
 class ServerKickListener(
-    private val proxy: ProxyServer,
-    private val config: () -> ConnectionConfig,
-    private val messageConfig: () -> MessageConfig
+    private val plugin: BungeeCordConnectionPlugin,
+    private val audiences: BungeeAudiences,
 ) : Listener {
 
-    private val serializer = BungeeComponentSerializer.get()
-
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler
     fun onServerKick(event: ServerKickEvent) {
-        val currentConfig = config()
-        val messages = messageConfig()
+        val config = plugin.connectionPlugin.connectionConfig
+        val messageConfig = plugin.connectionPlugin.messageConfig
 
-        if (!currentConfig.fallback.enabled) return
+        if (!config.fallback.enabled) return
 
-        val kickedFromServerName = event.kickedFrom.name
-        val resolver = ConnectionResolver(currentConfig)
+        val kickedServerName = event.kickedFrom.name
+        val serverNames = plugin.proxy.servers.keys.toList()
+        val sortedTargets = config.fallback.targetConnections.sortedByDescending { it.priority }
 
-        val entry = resolver.resolve(
-            targetConnections = currentConfig.fallback.targetConnections,
-            currentServerName = kickedFromServerName
-        )
+        for (target in sortedTargets) {
+            if (target.from.isNotEmpty()) {
+                val isFromAllowed = target.from.any { connectionName ->
+                    ConnectionResolver.isServerInConnection(
+                        kickedServerName, connectionName, config.connections, serverNames
+                    )
+                }
+                if (!isFromAllowed) continue
+            }
 
-        if (entry == null) {
+            val connection = ConnectionResolver.findConnection(target.name, config.connections) ?: continue
+
+            val failedRule = ConnectionResolver.checkRules(connection) { permission ->
+                event.player.hasPermission(permission)
+            }
+            if (failedRule != null) continue
+
+            val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
+            if (matchingNames.isEmpty()) continue
+
+            val targetServer = matchingNames
+                .mapNotNull { plugin.proxy.servers[it] }
+                .filter { it.name != kickedServerName }
+                .minByOrNull { it.players.size }
+                ?: continue
+
+            event.cancelServer = targetServer
             event.isCancelled = true
-            event.player.disconnect(
-                *serializer.serialize(messages.deserialize(messages.kick.noTargetConnection))
-            )
             return
         }
 
-        val servers = proxy.servers.values
-            .filter { entry.serverNameMatcher.matches(it.name) }
-            .filter { !it.name.equals(kickedFromServerName, ignoreCase = true) }
-
-        val targetServer = servers.randomOrNull()
-
-        if (targetServer == null) {
-            event.isCancelled = true
-            event.player.disconnect(
-                *serializer.serialize(messages.deserialize(messages.kick.noFallbackServers))
-            )
-            return
-        }
-
-        event.cancelServer = targetServer
         event.isCancelled = true
+        val audience = audiences.player(event.player)
+        audience.sendMessage(messageConfig.send(messageConfig.kick.noFallbackServers))
+        event.player.disconnect()
     }
+
 }

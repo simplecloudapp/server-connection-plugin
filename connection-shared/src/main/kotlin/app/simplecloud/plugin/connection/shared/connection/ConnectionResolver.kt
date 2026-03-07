@@ -1,48 +1,58 @@
 package app.simplecloud.plugin.connection.shared.connection
 
-import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionEntry
-import app.simplecloud.plugin.connection.shared.config.TargetConnection
+import app.simplecloud.plugin.connection.shared.config.ConnectionRule
+import app.simplecloud.plugin.connection.shared.config.RuleType
 
-/**
- * Resolves a list of [TargetConnection]s to the best matching [ConnectionEntry]
- */
-class ConnectionResolver(
-    private val config: ConnectionConfig
-) {
+object ConnectionResolver {
 
-    /**
-     * Resolves the best [ConnectionEntry] for the given [targetConnections].
-     *
-     * @param targetConnections the list of target connections to try
-     * @param currentServerName the name of the server the player is currently on
-     * @return the resolved [ConnectionEntry]
-     */
-    fun resolve(
-        targetConnections: List<TargetConnection>,
-        currentServerName: String?
-    ): ConnectionEntry? {
-        val groupedByPriority = targetConnections
-            .groupBy { it.priority }
-            .entries
-            .sortedByDescending { it.key }
+    fun findConnection(name: String, connections: List<ConnectionEntry>): ConnectionEntry? {
+        return connections.find { it.name.equals(name, ignoreCase = true) }
+    }
 
-        for ((_, targets) in groupedByPriority) {
-            for (target in targets.shuffled()) {
-                if (target.from.isNotEmpty()) {
-                    val matchesFrom = currentServerName != null &&
-                            target.from.any { it.equals(currentServerName, ignoreCase = true) }
-                    if (!matchesFrom) continue
+    fun findMatchingServerNames(
+        connection: ConnectionEntry,
+        servers: List<String>,
+    ): List<String> {
+        return servers.filter { connection.serverNameMatcher.matches(it) }
+    }
+
+    fun checkRules(
+        connection: ConnectionEntry,
+        permissionChecker: (String) -> Boolean,
+    ): ConnectionRule? {
+        for (rule in connection.rules) {
+            if (rule.bypassPermission.isNotEmpty() && permissionChecker(rule.bypassPermission)) {
+                continue
+            }
+
+            val failed = when (rule.type) {
+                RuleType.PERMISSION -> {
+                    val hasPermission = permissionChecker(rule.name)
+                    hasPermission != rule.value.toBoolean()
                 }
 
-                val entry = config.connections.find { it.name == target.name }
-                    ?: continue
-
-                return entry
+                RuleType.ENV -> {
+                    val envValue = System.getenv(rule.name) ?: ""
+                    val matches = rule.operation.matches(envValue, rule.value, rule.negate)
+                    !matches
+                }
             }
-        }
 
+            if (failed) return rule
+        }
         return null
+    }
+
+    fun isServerInConnection(
+        serverName: String,
+        connectionName: String,
+        connections: List<ConnectionEntry>,
+        servers: List<String>,
+    ): Boolean {
+        val connection = findConnection(connectionName, connections) ?: return false
+        val matchingNames = findMatchingServerNames(connection, servers)
+        return matchingNames.any { it.equals(serverName, ignoreCase = true) }
     }
 
 }

@@ -10,6 +10,7 @@ import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.config.YamlConfig
 import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
+import kotlinx.coroutines.future.await
 import org.apache.logging.log4j.LogManager
 
 class ConnectionPlugin(
@@ -24,32 +25,40 @@ class ConnectionPlugin(
     val config = YamlConfig(dir)
 
     val connectionConfig: ConnectionConfig get() = config.load<ConnectionConfig>("config") ?: ConnectionConfig()
-    val commandConfig: CommandConfig get() = config.load<CommandConfig>("commands") ?: CommandConfig()
     val messageConfig: MessageConfig get() = config.load<MessageConfig>("messages") ?: MessageConfig()
+    val commandConfig: CommandConfig get() = config.load<CommandConfig>("commands") ?: CommandConfig()
 
-    fun start() {
+    suspend fun start() {
+        logger.info("SimpleCloud v3 connection plugin initialized!")
         config.save("config", connectionConfig)
-        config.save("commands", commandConfig)
         config.save("messages", messageConfig)
-
-        loadExistingServers()
-        listener.start()
+        config.save("commands", commandConfig)
+        startRegistration()
     }
 
     fun shutdown() {
+        logger.info("SimpleCloud v3 connection plugin uninitialized!")
         config.close()
-        listener.stop()
+        if (connectionConfig.registration.enabled) {
+            listener.stop()
+        }
     }
 
-    private fun loadExistingServers() {
-        api.server().getAllServers(
+    private suspend fun startRegistration() {
+        if (connectionConfig.registration.enabled) {
+            loadExistingServers()
+            listener.start()
+        }
+    }
+
+    private suspend fun loadExistingServers() {
+        val servers = api.server().getAllServers(
             ServerQuery.create()
                 .filterByState(ServerState.AVAILABLE)
                 .filterByServerGroupType(GroupServerType.SERVER)
-        ).thenAccept { servers ->
-            logger.info("Found ${servers.size} servers")
-            servers.forEach { listener.register(it) }
-        }
+        ).await()
 
+        logger.info("Found ${servers.size} servers")
+        servers.forEach { listener.register(it) }
     }
 }

@@ -1,46 +1,48 @@
 package app.simplecloud.plugin.connection.velocity.listener
 
-import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
-import com.velocitypowered.api.event.PostOrder
+import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import com.velocitypowered.api.proxy.ProxyServer
 
 class PlayerChooseInitialServerListener(
-    private val proxyServer: ProxyServer,
-    private val config: () -> ConnectionConfig
+    private val plugin: VelocityConnectionPlugin,
+    private val proxy: ProxyServer,
 ) {
 
-    @Subscribe(order = PostOrder.NORMAL)
+    @Subscribe
     fun onPlayerChooseInitialServer(event: PlayerChooseInitialServerEvent) {
-        handleJoin(event)
-    }
+        val config = plugin.connectionPlugin.connectionConfig
+        val messages = plugin.connectionPlugin.messageConfig
 
-    private fun handleJoin(event: PlayerChooseInitialServerEvent) {
-        val currentConfig = config()
+        if (!config.networkJoinTargets.enabled) return
 
-        if (!currentConfig.networkJoinTargets.enabled) return
+        val serverNames = proxy.allServers.map { it.serverInfo.name }
+        val sortedTargets = config.networkJoinTargets.targetConnections.sortedByDescending { it.priority }
 
-        val resolver = ConnectionResolver(currentConfig)
+        for (target in sortedTargets) {
+            val connection = ConnectionResolver.findConnection(target.name, config.connections) ?: continue
 
-        val entry = resolver.resolve(
-            targetConnections = currentConfig.networkJoinTargets.targetConnections,
-            currentServerName = null
-        )
+            val failedRule = ConnectionResolver.checkRules(connection) { permission ->
+                event.player.hasPermission(permission)
+            }
+            if (failedRule != null) continue
 
-        if (entry == null) {
+            val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
+            if (matchingNames.isEmpty()) continue
+
+            val server = matchingNames
+                .mapNotNull { proxy.getServer(it).orElse(null) }
+                .minByOrNull { it.playersConnected.size }
+                ?: continue
+
+            event.setInitialServer(server)
             return
         }
 
-        val targetServer = proxyServer.allServers
-            .filter { entry.serverNameMatcher.matches(it.serverInfo.name) }
-            .randomOrNull()
-
-        if (targetServer == null) {
-            return
-        }
-
-        event.setInitialServer(targetServer)
+        event.setInitialServer(null)
+        event.player.disconnect(messages.send(messages.kick.noTargetConnection))
     }
+
 }

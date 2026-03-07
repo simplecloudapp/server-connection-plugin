@@ -1,84 +1,108 @@
 package app.simplecloud.plugin.connection.velocity.command
 
-import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.CommandEntry
+import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
 import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
-import com.velocitypowered.api.command.BrigadierCommand
+import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
-import net.kyori.adventure.text.minimessage.MiniMessage
 
 class VelocityCommandManager(
-    private val server: ProxyServer,
     private val plugin: VelocityConnectionPlugin,
+    private val proxy: ProxyServer,
 ) {
+    private val commands = mutableListOf<String>()
 
-    private val miniMessage = MiniMessage.miniMessage()
-    private val registeredCommands = mutableListOf<String>()
-
-    fun registerAll(commandConfig: CommandConfig) {
-        commandConfig.commands.forEach { entry ->
-            registerCommand(entry)
+    fun registerCommands() {
+        val commands = plugin.connectionPlugin.commandConfig.commands
+        for (command in commands) {
+            registerCommand(command)
         }
     }
 
-    fun unregisterAll() {
-        val commandManager = server.commandManager
-        registeredCommands.forEach { name -> commandManager.unregister(name) }
-        registeredCommands.clear()
+    fun unregisterCommands() {
+        commands.forEach { proxy.commandManager.unregister(it) }
+        commands.clear()
     }
 
-    private fun registerCommand(entry: CommandEntry) {
-        val commandManager = server.commandManager
-        val meta = commandManager.metaBuilder(entry.name)
-            .aliases(*entry.aliases.toTypedArray())
+    private fun registerCommand(command: CommandEntry) {
+        val connectionCommand = ConnectionCommand(plugin, proxy, command)
+        val meta = proxy.commandManager.metaBuilder(command.name)
+            .aliases(*command.aliases.toTypedArray())
             .plugin(plugin)
             .build()
 
-        commandManager.register(meta, buildBrigadierCommand(entry))
-        registeredCommands.add(entry.name)
+        proxy.commandManager.register(meta, connectionCommand)
+        commands.add(command.name)
     }
 
-    private fun buildBrigadierCommand(entry: CommandEntry): BrigadierCommand {
-        val node = BrigadierCommand.literalArgumentBuilder(entry.name)
-            .requires { entry.permission.isEmpty() || it.hasPermission(entry.permission) }
-            .executes { context ->
-                val player = context.source as? Player ?: return@executes 0
-                handleCommand(player, entry)
-                1
+    private class ConnectionCommand(
+        private val plugin: VelocityConnectionPlugin,
+        private val proxy: ProxyServer,
+        private val command: CommandEntry,
+    ) : SimpleCommand {
+
+        override fun execute(invocation: SimpleCommand.Invocation) {
+            val source = invocation.source()
+            if (source !is Player) return
+
+            val config = plugin.connectionPlugin.connectionConfig
+            val messages = plugin.connectionPlugin.messageConfig
+
+            if (command.permission.isNotEmpty() && !source.hasPermission(command.permission)) {
+                source.sendMessage(messages.send(messages.kick.permissionDenied))
+                return
             }
-            .build()
 
-        return BrigadierCommand(node)
-    }
+            val currentServerName = source.currentServer.orElse(null)?.serverInfo?.name
+            val serverNames = proxy.allServers.map { it.serverInfo.name }
+            val sortedTargets = command.targetConnections.sortedByDescending { it.priority }
 
-    private fun handleCommand(player: Player, entry: CommandEntry) {
-        val currentServerName = player.currentServer.orElse(null)?.serverInfo?.name
-        val groupedByPriority = entry.targetConnections
-            .groupBy { it.priority }
-            .entries
-            .sortedByDescending { it.key }
-
-        for ((_, targets) in groupedByPriority) {
-            for (target in targets.shuffled()) {
-                if (target.from.isNotEmpty()) {
-                    val matchesFrom = currentServerName != null &&
-                            target.from.any { it.equals(currentServerName, ignoreCase = true) }
-                    if (!matchesFrom) continue
+            for (target in sortedTargets) {
+                if (target.from.isNotEmpty() && currentServerName != null) {
+                    val isFromAllowed = target.from.any { connectionName ->
+                        ConnectionResolver.isServerInConnection(
+                            currentServerName, connectionName, config.connections, serverNames
+                        )
+                    }
+                    if (!isFromAllowed) continue
                 }
 
-                val registeredServer = server.getServer(target.name).orElse(null) ?: continue
+                val connection = ConnectionResolver.findConnection(target.name, config.connections) ?: continue
 
-                if (currentServerName.equals(registeredServer.serverInfo.name, ignoreCase = true)) {
-                    player.sendMessage(miniMessage.deserialize(entry.messages.alreadyConnected))
+                val failedRule = ConnectionResolver.checkRules(connection) { permission ->
+                    source.hasPermission(permission)
+                }
+                if (failedRule != null) {
+                    source.sendMessage(messages.send(messages.kick.permissionDenied))
                     return
                 }
 
-                player.createConnectionRequest(registeredServer).fireAndForget()
+                val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
+                if (matchingNames.isEmpty()) continue
+
+                val server = matchingNames
+                    .mapNotNull { proxy.getServer(it).orElse(null) }
+                    .minByOrNull { it.playersConnected.size }
+                    ?: continue
+
+                if (currentServerName != null && server.serverInfo.name == currentServerName) {
+                    source.sendMessage(messages.send(command.messages.alreadyConnected))
+                    return
+                }
+
+                source.createConnectionRequest(server).fireAndForget()
                 return
             }
+
+            source.sendMessage(messages.send(command.messages.noTargetConnectionFound))
         }
 
-        player.sendMessage(miniMessage.deserialize(entry.messages.noTargetConnectionFound))
+        override fun hasPermission(invocation: SimpleCommand.Invocation): Boolean {
+            if (command.permission.isEmpty()) return true
+            return invocation.source().hasPermission(command.permission)
+        }
+
     }
+
 }
