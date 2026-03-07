@@ -1,8 +1,10 @@
 package app.simplecloud.plugin.connection.shared.config
 
+import app.simplecloud.plugin.connection.shared.config.reactive.ReactiveConfig
+import app.simplecloud.plugin.connection.shared.config.reactive.ReactiveConfigInfo
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.kotlin.objectMapperFactory
 import org.spongepowered.configurate.loader.ParsingException
 import org.spongepowered.configurate.yaml.NodeStyle
@@ -14,31 +16,58 @@ import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.util.concurrent.ConcurrentHashMap
 
-open class YamlConfig(private val dirPath: String) {
+open class YamlConfig(val dirPath: String) {
 
-    companion object {
-        protected val logger: Logger = LogManager.getLogger(YamlConfig::class.java)
-    }
-
-
+    private val logger = LogManager.getLogger(YamlConfig::class.java)
     private val watchService = FileSystems.getDefault().newWatchService()
-    private val reloadListeners = ConcurrentHashMap<String, MutableList<(Any) -> Unit>>()
-    private val lastReload = ConcurrentHashMap<String, Long>()
-
+    private val configCache = ConcurrentHashMap<String, Any>()
+    private val reactiveConfigs = ConcurrentHashMap<String, MutableList<ReactiveConfigInfo<*>>>()
     private var watcherJob: Job? = null
 
     init {
         startWatcher()
     }
 
-    private fun buildNode(path: String?): Pair<org.spongepowered.configurate.CommentedConfigurationNode, YamlConfigurationLoader> {
-        val file = File(if (path != null) "$dirPath/${path.lowercase()}.yml" else dirPath)
+    inline fun <reified T> load(): ReactiveConfig<T> {
+        return load(null)
+    }
 
+    inline fun <reified T> load(path: String?): ReactiveConfig<T> {
+        return ReactiveConfig(this, path, T::class.java)
+    }
+
+    internal fun <T> loadDirect(path: String?, clazz: Class<T>): T? {
+        val cacheKey = path ?: "default"
+
+        try {
+            val node = buildNode(path).first
+            val config = node.get(clazz)
+
+            if (config != null) {
+                configCache[cacheKey] = config
+            }
+
+            return config
+        } catch (ex: ParsingException) {
+            val file = File(if (path != null) "${dirPath}/${path.lowercase()}.yml" else dirPath)
+            logger.warn("Could not load config file ${file.name}. Using cached version if available.")
+            @Suppress("UNCHECKED_CAST")
+            return configCache[cacheKey] as? T
+        }
+    }
+
+    internal fun <T> registerReactiveConfig(path: String?, clazz: Class<T>, reactiveConfig: ReactiveConfig<T>) {
+        val cacheKey = path ?: "default"
+        val configs = reactiveConfigs.getOrPut(cacheKey) { mutableListOf() }
+        configs.add(ReactiveConfigInfo(clazz, reactiveConfig))
+    }
+
+    fun buildNode(path: String?): Pair<CommentedConfigurationNode, YamlConfigurationLoader> {
+        val file = File(if (path != null) "${dirPath}/${path.lowercase()}.yml" else dirPath)
         if (!file.exists()) {
             file.parentFile.mkdirs()
             file.createNewFile()
         }
-
         val loader = YamlConfigurationLoader.builder()
             .path(file.toPath())
             .nodeStyle(NodeStyle.BLOCK)
@@ -50,39 +79,28 @@ open class YamlConfig(private val dirPath: String) {
         return Pair(loader.load(), loader)
     }
 
-    inline fun <reified T> load(path: String?): T? {
-        return load(path, T::class.java)
-    }
-
-    @PublishedApi
-    internal fun <T> load(path: String?, clazz: Class<T>): T? {
-        return try {
-            val node = buildNode(path).first
-            val config = node.get(clazz)
-
-            config
-        } catch (e: ParsingException) {
-            logger.error("Failed to parse config file: ${path ?: "default"} ${e.message}")
-            null
-        } catch (e: Exception) {
-            logger.error("Failed to load config: ${path ?: "default"} ${e.message}", e)
-            null
-        }
+    fun <T> save(obj: T) {
+        save(null, obj)
     }
 
     fun <T> save(path: String?, obj: T) {
-        try {
-            val pair = buildNode(path)
-            pair.first.set(obj)
-            pair.second.save(pair.first)
-        } catch (e: Exception) {
-            logger.error("Failed to save config: $path ${e.message}", e)
+        val pair = buildNode(path)
+        pair.first.set(obj)
+        pair.second.save(pair.first)
+
+        // Update cache after successful save
+        val cacheKey = path ?: "default"
+        if (obj != null) {
+            configCache[cacheKey] = obj
         }
+    }
+
+    fun <T> save(path: String?, reactiveConfig: ReactiveConfig<T>) {
+        return save(path, reactiveConfig.get())
     }
 
     private fun startWatcher() {
         val directory = File(dirPath).toPath()
-
         if (!directory.toFile().exists()) {
             directory.toFile().mkdirs()
         }
@@ -90,16 +108,13 @@ open class YamlConfig(private val dirPath: String) {
         try {
             directory.register(
                 watchService,
-                StandardWatchEventKinds.ENTRY_MODIFY,
-                StandardWatchEventKinds.ENTRY_CREATE
+                StandardWatchEventKinds.ENTRY_MODIFY
             )
 
             watcherJob = CoroutineScope(Dispatchers.IO).launch {
                 while (isActive) {
                     try {
                         val key = watchService.take()
-                        delay(150)
-
                         for (event in key.pollEvents()) {
                             val path = event.context() as? Path ?: continue
                             val resolvedPath = directory.resolve(path)
@@ -108,59 +123,44 @@ open class YamlConfig(private val dirPath: String) {
                                 continue
                             }
 
-                            handleFileChange(resolvedPath.toFile())
+                            val kind = event.kind()
+                            if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                handleFileChange(resolvedPath.toFile())
+                            }
                         }
-
                         key.reset()
-
-                    } catch (e: InterruptedException) {
-                        logger.info("Config watcher interrupted")
-                        break
                     } catch (e: Exception) {
                         logger.warn("Error in config watcher: ${e.message}")
                     }
                 }
             }
-
         } catch (e: Exception) {
-            logger.error("Could not start config file watcher: ${e.message}", e)
+            logger.warn("Could not start config file watcher: ${e.message}")
         }
     }
 
     private fun handleFileChange(file: File) {
-        val cacheKey = file.nameWithoutExtension
-        val now = System.currentTimeMillis()
+        val fileName = file.nameWithoutExtension
+        val cacheKey = if (file.name == File(dirPath).name) "default" else fileName
 
-        val last = lastReload[cacheKey]
-        if (last != null && now - last < 300) return
-        lastReload[cacheKey] = now
+        val reactiveConfigList = reactiveConfigs[cacheKey] ?: return
 
-        val listeners = reloadListeners[cacheKey]
-        if (listeners.isNullOrEmpty()) return
+        reactiveConfigList.forEach { configInfo ->
+            try {
+                val configPath = if (cacheKey == "default") null else fileName
 
-        try {
-            val loader = YamlConfigurationLoader.builder()
-                .path(file.toPath())
-                .nodeStyle(NodeStyle.BLOCK)
-                .defaultOptions { options ->
-                    options.serializers { builder ->
-                        builder.registerAnnotatedObjects(objectMapperFactory())
-                    }
-                }.build()
+                @Suppress("UNCHECKED_CAST")
+                val typedConfigInfo = configInfo as ReactiveConfigInfo<Any>
+                val newValue = loadDirect(configPath, typedConfigInfo.clazz)
 
-            val node = loader.load()
+                typedConfigInfo.reactiveConfig.update(newValue)
 
-            listeners.forEach { listener ->
-                try {
-                    listener(node)
-                } catch (e: Exception) {
-                    logger.error("Error in reload listener for $cacheKey: ${e.message}", e)
-                }
+            } catch (ex: ParsingException) {
+                logger.warn("Config file ${file.name} has parsing errors. Keeping old version.")
+                // Don't update the reactive config, keep the old cached version
+            } catch (e: Exception) {
+                logger.warn("Error updating reactive config: ${e.message}")
             }
-        } catch (e: ParsingException) {
-            logger.error("Failed to parse changed config file: $cacheKey ${e.message}")
-        } catch (e: Exception) {
-            logger.error("Failed to reload config: $cacheKey ${e.message}", e)
         }
     }
 
@@ -168,9 +168,9 @@ open class YamlConfig(private val dirPath: String) {
         watcherJob?.cancel()
         try {
             watchService.close()
-            logger.info("Config watcher closed")
         } catch (e: Exception) {
             logger.warn("Error closing watch service: ${e.message}")
         }
     }
+
 }

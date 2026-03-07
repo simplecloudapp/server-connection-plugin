@@ -45,7 +45,7 @@ class BungeeCordConnectionPlugin : Plugin() {
     }
 
     private fun cleanupServers() {
-        if (connectionPlugin.connectionConfig.registration.enabled) {
+        if (connectionPlugin.connectionConfig.get().registration.enabled) {
             proxy.servers.clear()
             proxy.configurationAdapter.servers.clear()
             proxy.configurationAdapter.listeners.forEach {
@@ -55,8 +55,8 @@ class BungeeCordConnectionPlugin : Plugin() {
     }
 
     private fun registerAdditionalServers() {
-        if (connectionPlugin.connectionConfig.registration.enabled) {
-            val additionalServers = connectionPlugin.connectionConfig.registration.additionalServers
+        if (connectionPlugin.connectionConfig.get().registration.enabled) {
+            val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
             additionalServers.forEach {
                 val info = proxy.constructServerInfo(
                     it.name,

@@ -16,7 +16,7 @@ class BungeeCordCommandManager(
     private val commands = mutableListOf<String>()
 
     fun registerCommands() {
-        val commands = plugin.connectionPlugin.commandConfig.commands
+        val commands = plugin.connectionPlugin.commandConfig.get().commands
         for (command in commands) {
             registerCommand(command)
         }
@@ -52,8 +52,8 @@ class BungeeCordCommandManager(
     }
 
     private fun handleCommand(player: ProxiedPlayer, command: CommandEntry) {
-        val config = plugin.connectionPlugin.connectionConfig
-        val messages = plugin.connectionPlugin.messageConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messages = plugin.connectionPlugin.messageConfig.get()
         val audience = audiences.player(player)
 
         if (command.permission.isNotEmpty() && !player.hasPermission(command.permission)) {

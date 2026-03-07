@@ -23,7 +23,7 @@ class BungeeCordServerRegistry(
         val address = InetSocketAddress.createUnresolved(server.ip, server.port)
         val name = RegisteredServerResolver.resolve(
             server,
-            plugin.connectionPlugin.connectionConfig.registration
+            plugin.connectionPlugin.connectionConfig.get().registration
         )
         val info: ServerInfo = ProxyServer.getInstance().constructServerInfo(
             name,
@@ -38,7 +38,7 @@ class BungeeCordServerRegistry(
     override fun unregister(server: RegisteredServer) {
         val name = RegisteredServerResolver.resolve(
             server,
-            plugin.connectionPlugin.connectionConfig.registration
+            plugin.connectionPlugin.connectionConfig.get().registration
         )
         proxy.servers.remove(name)
         servers.remove(server.serverId)

@@ -19,7 +19,7 @@ class WaterdogReconnectHandler(
     ): ServerInfo? {
         if (player == null) return null
 
-        val config = plugin.connectionPlugin.connectionConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
 
         if (!config.fallback.enabled) return null
 

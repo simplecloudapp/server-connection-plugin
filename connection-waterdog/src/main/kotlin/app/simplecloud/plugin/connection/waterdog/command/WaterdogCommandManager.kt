@@ -19,7 +19,7 @@ class WaterdogCommandManager(
     private val serializer = PlainTextComponentSerializer.plainText()
 
     fun registerCommands() {
-        val commands = plugin.connectionPlugin.commandConfig.commands
+        val commands = plugin.connectionPlugin.commandConfig.get().commands
         for (command in commands) {
             registerCommand(command)
         }
@@ -53,8 +53,8 @@ class WaterdogCommandManager(
     }
 
     private fun handleCommand(player: ProxiedPlayer, command: CommandEntry) {
-        val config = plugin.connectionPlugin.connectionConfig
-        val messages = plugin.connectionPlugin.messageConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (command.permission.isNotEmpty() && !player.hasPermission(command.permission)) {
             sendMessage(player, messages.kick.permissionDenied)

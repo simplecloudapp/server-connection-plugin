@@ -24,9 +24,9 @@ class ConnectionPlugin(
 
     val config = YamlConfig(dir)
 
-    val connectionConfig: ConnectionConfig get() = config.load<ConnectionConfig>("config") ?: ConnectionConfig()
-    val messageConfig: MessageConfig get() = config.load<MessageConfig>("messages") ?: MessageConfig()
-    val commandConfig: CommandConfig get() = config.load<CommandConfig>("commands") ?: CommandConfig()
+    val connectionConfig = config.load<ConnectionConfig>("config")
+    val messageConfig = config.load<MessageConfig>("messages")
+    val commandConfig = config.load<CommandConfig>("commands")
 
     suspend fun start() {
         logger.info("SimpleCloud v3 connection plugin initialized!")
@@ -39,13 +39,13 @@ class ConnectionPlugin(
     fun shutdown() {
         logger.info("SimpleCloud v3 connection plugin uninitialized!")
         config.close()
-        if (connectionConfig.registration.enabled) {
+        if (connectionConfig.get().registration.enabled) {
             listener.stop()
         }
     }
 
     private suspend fun startRegistration() {
-        if (connectionConfig.registration.enabled) {
+        if (connectionConfig.get().registration.enabled) {
             loadExistingServers()
             listener.start()
         }

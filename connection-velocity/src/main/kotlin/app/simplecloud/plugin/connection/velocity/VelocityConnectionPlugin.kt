@@ -63,7 +63,7 @@ class VelocityConnectionPlugin @Inject constructor(
     }
 
     private fun cleanupServers() {
-        if (connectionPlugin.connectionConfig.registration.enabled) {
+        if (connectionPlugin.connectionConfig.get().registration.enabled) {
             server.allServers.forEach {
                 server.unregisterServer(it.serverInfo)
             }
@@ -71,8 +71,8 @@ class VelocityConnectionPlugin @Inject constructor(
     }
 
     private fun registerAdditionalServers() {
-        if (connectionPlugin.connectionConfig.registration.enabled) {
-            val additionalServers = connectionPlugin.connectionConfig.registration.additionalServers
+        if (connectionPlugin.connectionConfig.get().registration.enabled) {
+            val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
             additionalServers.forEach {
                 val info = ServerInfo(it.name, InetSocketAddress.createUnresolved(it.address, it.port.toInt()))
                 server.registerServer(info)

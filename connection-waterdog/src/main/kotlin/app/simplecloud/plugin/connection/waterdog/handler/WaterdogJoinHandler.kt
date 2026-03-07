@@ -11,7 +11,7 @@ class WaterdogJoinHandler(
 ) : IJoinHandler {
 
     override fun determineServer(player: ProxiedPlayer): ServerInfo? {
-        val config = plugin.connectionPlugin.connectionConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
 
         if (!config.networkJoinTargets.enabled) return null
 

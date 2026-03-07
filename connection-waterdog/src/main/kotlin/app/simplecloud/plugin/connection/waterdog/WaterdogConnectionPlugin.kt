@@ -43,7 +43,7 @@ class WaterdogConnectionPlugin : Plugin() {
     }
 
     private fun cleanupServers() {
-        if (connectionPlugin.connectionConfig.registration.enabled) {
+        if (connectionPlugin.connectionConfig.get().registration.enabled) {
             proxy.servers.forEach {
                 proxy.removeServerInfo(it.serverName)
             }
@@ -51,8 +51,8 @@ class WaterdogConnectionPlugin : Plugin() {
     }
 
     private fun registerAdditionalServers() {
-        if (connectionPlugin.connectionConfig.registration.enabled) {
-            val additionalServers = connectionPlugin.connectionConfig.registration.additionalServers
+        if (connectionPlugin.connectionConfig.get().registration.enabled) {
+            val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
             additionalServers.forEach {
                 val address = InetSocketAddress.createUnresolved(it.address, it.port.toInt())
                 val info = BedrockServerInfo(it.name, address, address)

@@ -22,7 +22,7 @@ class WaterdogServerRegistry(
     override fun register(server: RegisteredServer) {
         val address = InetSocketAddress.createUnresolved(server.ip, server.port)
         val info = BedrockServerInfo(
-            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.registration),
+            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.get().registration),
             address,
             address
         )
@@ -33,7 +33,7 @@ class WaterdogServerRegistry(
     override fun unregister(server: RegisteredServer) {
         val name = RegisteredServerResolver.resolve(
             server,
-            plugin.connectionPlugin.connectionConfig.registration
+            plugin.connectionPlugin.connectionConfig.get().registration
         )
         proxy.removeServerInfo(name) ?: return
         servers.remove(server.serverId)

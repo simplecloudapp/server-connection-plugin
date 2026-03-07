@@ -14,7 +14,7 @@ class VelocityCommandManager(
     private val commands = mutableListOf<String>()
 
     fun registerCommands() {
-        val commands = plugin.connectionPlugin.commandConfig.commands
+        val commands = plugin.connectionPlugin.commandConfig.get().commands
         for (command in commands) {
             registerCommand(command)
         }
@@ -46,8 +46,8 @@ class VelocityCommandManager(
             val source = invocation.source()
             if (source !is Player) return
 
-            val config = plugin.connectionPlugin.connectionConfig
-            val messages = plugin.connectionPlugin.messageConfig
+            val config = plugin.connectionPlugin.connectionConfig.get()
+            val messages = plugin.connectionPlugin.messageConfig.get()
 
             if (command.permission.isNotEmpty() && !source.hasPermission(command.permission)) {
                 source.sendMessage(messages.send(messages.kick.permissionDenied))

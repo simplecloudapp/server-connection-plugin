@@ -16,8 +16,8 @@ class ServerConnectListener(
     fun onServerConnect(event: ServerConnectEvent) {
         if (event.reason != ServerConnectEvent.Reason.JOIN_PROXY) return
 
-        val config = plugin.connectionPlugin.connectionConfig
-        val messages = plugin.connectionPlugin.messageConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (!config.networkJoinTargets.enabled) return
 

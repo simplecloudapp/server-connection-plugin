@@ -22,7 +22,7 @@ class VelocityServerRegistry(
 
     override fun register(server: RegisteredServer) {
         val info = ServerInfo(
-            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.registration),
+            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.get().registration),
             InetSocketAddress.createUnresolved(server.ip, server.port)
         )
         proxy.registerServer(info)
@@ -31,7 +31,7 @@ class VelocityServerRegistry(
 
     override fun unregister(server: RegisteredServer) {
         val registered = proxy.getServer(
-            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.registration)
+            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.get().registration)
         ).getOrNull() ?: return
         proxy.unregisterServer(registered.serverInfo)
         servers.remove(server.serverId)

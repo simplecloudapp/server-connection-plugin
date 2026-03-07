@@ -14,8 +14,8 @@ class ServerKickListener(
 
     @EventHandler
     fun onServerKick(event: ServerKickEvent) {
-        val config = plugin.connectionPlugin.connectionConfig
-        val messageConfig = plugin.connectionPlugin.messageConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messageConfig = plugin.connectionPlugin.messageConfig.get()
 
         if (!config.fallback.enabled) return
 

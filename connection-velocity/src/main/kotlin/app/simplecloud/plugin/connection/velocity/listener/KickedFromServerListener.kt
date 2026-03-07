@@ -13,8 +13,8 @@ class KickedFromServerListener(
 
     @Subscribe
     fun onKickedFromServer(event: KickedFromServerEvent) {
-        val config = plugin.connectionPlugin.connectionConfig
-        val messages = plugin.connectionPlugin.messageConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (!config.fallback.enabled) return
 

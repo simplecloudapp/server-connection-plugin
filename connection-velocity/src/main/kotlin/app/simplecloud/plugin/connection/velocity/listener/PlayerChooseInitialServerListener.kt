@@ -13,8 +13,8 @@ class PlayerChooseInitialServerListener(
 
     @Subscribe
     fun onPlayerChooseInitialServer(event: PlayerChooseInitialServerEvent) {
-        val config = plugin.connectionPlugin.connectionConfig
-        val messages = plugin.connectionPlugin.messageConfig
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (!config.networkJoinTargets.enabled) return
 
