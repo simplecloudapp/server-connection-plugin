@@ -2,6 +2,7 @@ package app.simplecloud.plugin.connection.velocity
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
+import app.simplecloud.plugin.connection.velocity.command.ConnectionCommand
 import app.simplecloud.plugin.connection.velocity.command.VelocityCommandManager
 import app.simplecloud.plugin.connection.velocity.listener.KickedFromServerListener
 import app.simplecloud.plugin.connection.velocity.listener.PlayerChooseInitialServerListener
@@ -88,5 +89,10 @@ class VelocityConnectionPlugin @Inject constructor(
 
     private fun registerCommands() {
         commandManager.registerCommands()
+
+        val meta = server.commandManager.metaBuilder("connection")
+            .plugin(this)
+            .build()
+        server.commandManager.register(meta, ConnectionCommand(this))
     }
 }

@@ -2,6 +2,7 @@ package app.simplecloud.plugin.connection.bungeecord
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.bungeecord.command.BungeeCordCommandManager
+import app.simplecloud.plugin.connection.bungeecord.command.ConnectionCommand
 import app.simplecloud.plugin.connection.bungeecord.listener.ServerConnectListener
 import app.simplecloud.plugin.connection.bungeecord.listener.ServerKickListener
 import app.simplecloud.plugin.connection.bungeecord.registration.BungeeCordServerRegistry
@@ -77,6 +78,7 @@ class BungeeCordConnectionPlugin : Plugin() {
 
     private fun registerCommands() {
         commandManager.registerCommands()
+        proxy.pluginManager.registerCommand(this, ConnectionCommand(this, audiences))
     }
 
 }

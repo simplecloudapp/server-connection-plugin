@@ -16,7 +16,7 @@ import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.util.concurrent.ConcurrentHashMap
 
-open class YamlConfig(val dirPath: String) {
+open class YamlConfig(private val dirPath: String) {
 
     private val logger = LogManager.getLogger(YamlConfig::class.java)
     private val watchService = FileSystems.getDefault().newWatchService()
@@ -62,7 +62,7 @@ open class YamlConfig(val dirPath: String) {
         configs.add(ReactiveConfigInfo(clazz, reactiveConfig))
     }
 
-    fun buildNode(path: String?): Pair<CommentedConfigurationNode, YamlConfigurationLoader> {
+    private fun buildNode(path: String?): Pair<CommentedConfigurationNode, YamlConfigurationLoader> {
         val file = File(if (path != null) "${dirPath}/${path.lowercase()}.yml" else dirPath)
         if (!file.exists()) {
             file.parentFile.mkdirs()
@@ -83,7 +83,7 @@ open class YamlConfig(val dirPath: String) {
         save(null, obj)
     }
 
-    fun <T> save(path: String?, obj: T) {
+    private fun <T> save(path: String?, obj: T) {
         val pair = buildNode(path)
         pair.first.set(obj)
         pair.second.save(pair.first)

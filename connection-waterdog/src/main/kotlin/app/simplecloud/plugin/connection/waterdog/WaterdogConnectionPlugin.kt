@@ -2,6 +2,7 @@ package app.simplecloud.plugin.connection.waterdog
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
+import app.simplecloud.plugin.connection.waterdog.command.ConnectionCommand
 import app.simplecloud.plugin.connection.waterdog.command.WaterdogCommandManager
 import app.simplecloud.plugin.connection.waterdog.handler.WaterdogJoinHandler
 import app.simplecloud.plugin.connection.waterdog.handler.WaterdogReconnectHandler
@@ -69,6 +70,7 @@ class WaterdogConnectionPlugin : Plugin() {
 
     private fun registerCommands() {
         commandManager.registerCommands()
+        proxy.commandMap.registerCommand(ConnectionCommand(this))
     }
 
 }

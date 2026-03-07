@@ -12,7 +12,8 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 data class MessageConfig(
     val version: Char = ConfigVersion.VERSION,
     val variables: Map<String, String> = DefaultConfigs.VARIABLES,
-    val kick: KickMessages = KickMessages()
+    val kick: KickMessages = KickMessages(),
+    val command: ConnectionCommandMessages = ConnectionCommandMessages()
 ) {
     private val miniMessage = MiniMessage.miniMessage()
 
@@ -31,5 +32,13 @@ data class MessageConfig(
 data class KickMessages(
     val noFallbackServers: String = "<prefix> <color:#dc2626>There is no fallback server available.",
     val noTargetConnection: String = "<prefix> <color:#dc2626>You have been disconnected from the network<br>because there are no fallback servers available.",
-    val permissionDenied: String = "<prefix> <color:#dc2626>You don't have permission to join this server.",
+    val permissionDenied: String = "<prefix> <color:#dc2626>You don't have permission to join this server."
+)
+
+@ConfigSerializable
+data class ConnectionCommandMessages(
+    val commandUsage: String = "<prefix> <color:#ffffff>Usage: /connection reload",
+    val configReloading: String = "<prefix> <color:#ffffff>Reloading Connection configurations...",
+    val configReloadedSuccess: String = "<prefix> <color:#22c55e>Successfully reloaded all Connection configurations.",
+    val configReloadedFailed: String = "<prefix> <color:#dc2626>Failed to reload Connection configurations."
 )
