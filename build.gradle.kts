@@ -39,7 +39,7 @@ subprojects {
         testImplementation(rootProject.libs.kotlin.test)
         implementation(rootProject.libs.kotlin.jvm)
         implementation(rootProject.libs.kotlin.coroutines.core)
-        implementation(rootProject.libs.bundles.logging)
+        implementation(rootProject.libs.log4j.api)
     }
 
     kotlin {
