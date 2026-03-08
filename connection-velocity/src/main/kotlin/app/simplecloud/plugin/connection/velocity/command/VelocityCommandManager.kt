@@ -50,7 +50,6 @@ class VelocityCommandManager(
             val messages = plugin.connectionPlugin.messageConfig.get()
 
             if (command.permission.isNotEmpty() && !source.hasPermission(command.permission)) {
-                source.sendMessage(messages.send(messages.kick.permissionDenied))
                 return
             }
 
@@ -74,7 +73,6 @@ class VelocityCommandManager(
                     source.hasPermission(permission)
                 }
                 if (failedRule != null) {
-                    source.sendMessage(messages.send(messages.kick.permissionDenied))
                     return
                 }
 

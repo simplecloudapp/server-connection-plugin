@@ -32,7 +32,6 @@ data class MessageConfig(
 data class KickMessages(
     val noFallbackServers: String = "<color:#dc2626>There is no fallback server available.",
     val noTargetConnection: String = "<color:#dc2626>You have been disconnected from the network<br>because there are no fallback servers available.",
-    val permissionDenied: String = "<color:#dc2626>You don't have permission to join this server."
 )
 
 @ConfigSerializable

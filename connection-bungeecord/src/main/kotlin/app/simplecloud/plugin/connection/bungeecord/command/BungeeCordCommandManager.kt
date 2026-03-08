@@ -57,7 +57,6 @@ class BungeeCordCommandManager(
         val audience = audiences.player(player)
 
         if (command.permission.isNotEmpty() && !player.hasPermission(command.permission)) {
-            audience.sendMessage(messages.send(messages.kick.permissionDenied))
             return
         }
 
@@ -81,7 +80,6 @@ class BungeeCordCommandManager(
                 player.hasPermission(permission)
             }
             if (failedRule != null) {
-                audience.sendMessage(messages.send(messages.kick.permissionDenied))
                 return
             }
 

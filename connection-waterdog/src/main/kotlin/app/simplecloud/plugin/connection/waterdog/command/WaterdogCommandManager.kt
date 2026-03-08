@@ -54,10 +54,8 @@ class WaterdogCommandManager(
 
     private fun handleCommand(player: ProxiedPlayer, command: CommandEntry) {
         val config = plugin.connectionPlugin.connectionConfig.get()
-        val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (command.permission.isNotEmpty() && !player.hasPermission(command.permission)) {
-            sendMessage(player, messages.kick.permissionDenied)
             return
         }
 
@@ -81,7 +79,6 @@ class WaterdogCommandManager(
                 player.hasPermission(permission)
             }
             if (failedRule != null) {
-                sendMessage(player, messages.kick.permissionDenied)
                 return
             }
 
