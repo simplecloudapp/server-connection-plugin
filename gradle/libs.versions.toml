@@ -2,10 +2,10 @@
 kotlin = "2.2.20"
 kotlin-coroutines = "1.10.2"
 
-shadow = "9.3.2"
-minotaur = "2.8.10"
+shadow = "9.4.1"
+minotaur = "2.9.0"
 
-simplecloud-api = "0.1.0-platform.20-dev.1771710355025-becd984"
+simplecloud-api = "0.1.0-platform.22-dev.1774376168759-1e20f57"
 simplecloud-plugin-api = "0.0.1-platform.1766000824440-e57ed95"
 
 velocity = "3.5.0-SNAPSHOT"
