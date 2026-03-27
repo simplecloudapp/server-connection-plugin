@@ -10,6 +10,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 data class ConnectionConfig(
     val version: Char = ConfigVersion.VERSION,
     val registration: RegistrationConfig = RegistrationConfig(),
+    val subdomain: SubdomainConfig = SubdomainConfig(),
     val connections: List<ConnectionEntry> = DefaultConfigs.CONNECTIONS,
     val networkJoinTargets: NetworkJoinTargetsConfig = DefaultConfigs.NETWORK_JOIN_TARGETS,
     val fallback: FallbackConfig = DefaultConfigs.FALLBACK,
@@ -29,6 +30,18 @@ data class RegistrationServer(
     val name: String = "",
     val address: String = "",
     val port: Long = 0L
+)
+
+@ConfigSerializable
+data class SubdomainConfig(
+    val enabled: Boolean = true,
+    val mappings: List<SubdomainMapping> = listOf()
+)
+
+@ConfigSerializable
+data class SubdomainMapping(
+    val subdomain: String = "",
+    val targetConnection: String = ""
 )
 
 @ConfigSerializable
