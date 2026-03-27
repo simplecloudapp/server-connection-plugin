@@ -19,7 +19,7 @@ class PlayerChooseInitialServerListener(
         if (config.subdomain.enabled) {
             val virtualHost = event.player.virtualHost.map { it.hostName }.orElse(null)
             if (virtualHost != null) {
-                val mapping = config.subdomain.mappings.find { it.subdomain == virtualHost }
+                val mapping = config.subdomain.routes.find { it.subdomain == virtualHost }
                 if (mapping != null) {
                     val connection = ConnectionResolver.findConnection(mapping.targetConnection, config.connections)
                     if (connection != null) {

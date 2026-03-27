@@ -35,11 +35,11 @@ data class RegistrationServer(
 @ConfigSerializable
 data class SubdomainConfig(
     val enabled: Boolean = true,
-    val mappings: List<SubdomainMapping> = listOf()
+    val routes: List<SubdomainRoute> = listOf()
 )
 
 @ConfigSerializable
-data class SubdomainMapping(
+data class SubdomainRoute(
     val subdomain: String = "",
     val targetConnection: String = ""
 )
