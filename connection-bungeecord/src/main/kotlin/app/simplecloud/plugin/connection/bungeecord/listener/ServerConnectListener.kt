@@ -19,6 +19,25 @@ class ServerConnectListener(
         val config = plugin.connectionPlugin.connectionConfig.get()
         val messages = plugin.connectionPlugin.messageConfig.get()
 
+        val virtualHost = event.player.pendingConnection.virtualHost?.hostName
+        if (virtualHost != null) {
+            val route = config.address.routes.find { it.subdomain == virtualHost }
+            if (route != null) {
+                val connection = ConnectionResolver.findConnection(route.targetConnection, config.connections)
+                if (connection != null) {
+                    val serverNames = plugin.proxy.servers.keys.toList()
+                    val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
+                    val targetServer = matchingNames
+                        .mapNotNull { plugin.proxy.servers[it] }
+                        .minByOrNull { it.players.size }
+                    if (targetServer != null) {
+                        event.target = targetServer
+                        return
+                    }
+                }
+            }
+        }
+
         if (!config.networkJoinTargets.enabled) return
 
         val serverNames = plugin.proxy.servers.keys.toList()

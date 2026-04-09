@@ -13,6 +13,20 @@ class WaterdogJoinHandler(
     override fun determineServer(player: ProxiedPlayer): ServerInfo? {
         val config = plugin.connectionPlugin.connectionConfig.get()
 
+        val virtualHost = player.loginData.joinHostname
+        val route = config.address.routes.find { it.subdomain == virtualHost }
+        if (route != null) {
+            val connection = ConnectionResolver.findConnection(route.targetConnection, config.connections)
+            if (connection != null) {
+                val serverNames = plugin.proxy.servers.map { it.serverName }
+                val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
+                val serverInfo = matchingNames
+                    .mapNotNull { name -> plugin.proxy.getServerInfo(name) }
+                    .minByOrNull { it.players.size }
+                if (serverInfo != null) return serverInfo
+            }
+        }
+
         if (!config.networkJoinTargets.enabled) return null
 
         val serverNames = plugin.proxy.servers.map { it.serverName }
