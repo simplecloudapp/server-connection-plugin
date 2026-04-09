@@ -4,14 +4,15 @@ import app.simplecloud.api.CloudApi
 import app.simplecloud.api.group.GroupServerType
 import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.api.server.ServerState
+import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
-import app.simplecloud.plugin.connection.shared.config.YamlConfig
 import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import kotlinx.coroutines.future.await
 import org.apache.logging.log4j.LogManager
+import java.io.File
 
 class ConnectionPlugin(
     dir: String,
@@ -22,26 +23,33 @@ class ConnectionPlugin(
     private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
     private val listener = ServerEventListener(api, registry)
 
-    val config = YamlConfig(dir)
+    val connectionConfig = ConfigurationFactory(File(dir, "config.yml"), ConnectionConfig::class.java)
+    val messageConfig = ConfigurationFactory(File(dir, "messages.yml"), MessageConfig::class.java)
+    val commandConfig = ConfigurationFactory(File(dir, "commands.yml"), CommandConfig::class.java)
 
-    val connectionConfig = config.load<ConnectionConfig>("config")
-    val messageConfig = config.load<MessageConfig>("messages")
-    val commandConfig = config.load<CommandConfig>("commands")
+    init {
+        File(dir).mkdirs()
+        connectionConfig.loadOrCreate(ConnectionConfig())
+        messageConfig.loadOrCreate(MessageConfig())
+        commandConfig.loadOrCreate(CommandConfig())
+    }
 
     suspend fun start() {
         logger.info("SimpleCloud v3 connection plugin initialized!")
-        config.save("config", connectionConfig)
-        config.save("messages", messageConfig)
-        config.save("commands", commandConfig)
         startRegistration()
     }
 
     fun shutdown() {
         logger.info("SimpleCloud v3 connection plugin uninitialized!")
-        config.close()
         if (connectionConfig.get().registration.enabled) {
             listener.stop()
         }
+    }
+
+    fun reload() {
+        connectionConfig.loadOrCreate(ConnectionConfig())
+        messageConfig.loadOrCreate(MessageConfig())
+        commandConfig.loadOrCreate(CommandConfig())
     }
 
     private suspend fun startRegistration() {

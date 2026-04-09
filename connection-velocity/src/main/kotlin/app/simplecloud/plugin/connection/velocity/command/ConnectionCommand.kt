@@ -27,9 +27,7 @@ class ConnectionCommand(
         source.sendMessage(messages.send(messages.command.configReloading))
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                plugin.connectionPlugin.connectionConfig.reload()
-                plugin.connectionPlugin.commandConfig.reload()
-                plugin.connectionPlugin.messageConfig.reload()
+                plugin.connectionPlugin.reload()
 
                 source.sendMessage(messages.send(messages.command.configReloadedSuccess))
             }
