@@ -3,6 +3,7 @@ package app.simplecloud.plugin.connection.shared.config
 import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
 import app.simplecloud.plugin.connection.shared.utilities.DefaultConfigs
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import org.spongepowered.configurate.objectmapping.meta.Comment
 
 @ConfigSerializable
 data class CommandConfig(
@@ -14,9 +15,10 @@ data class CommandConfig(
 data class CommandEntry(
     val name: String = "",
     val aliases: List<String> = listOf(),
-    val targetConnections: List<FallbackTargetConnection> = listOf(),
-    val messages: CommandMessages = CommandMessages(),
+    @Comment("Leave empty to allow everyone")
     val permission: String = "",
+    val messages: CommandMessages = CommandMessages(),
+    val targetConnections: List<FallbackTargetConnection> = listOf(),
 )
 
 @ConfigSerializable

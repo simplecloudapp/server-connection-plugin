@@ -7,12 +7,16 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import org.spongepowered.configurate.objectmapping.meta.Comment
 
 @ConfigSerializable
 data class MessageConfig(
     val version: Char = ConfigVersion.VERSION,
+    @Comment("Variables\nReusable variables that can be used throughout the messages\nUsage: <variable_name> will be replaced with the defined value")
     val variables: Map<String, String> = DefaultConfigs.VARIABLES,
+    @Comment("Kick Messages")
     val kick: KickMessages = KickMessages(),
+    @Comment("Command Messages")
     val command: ConnectionCommandMessages = ConnectionCommandMessages()
 ) {
     private val miniMessage = MiniMessage.miniMessage()
