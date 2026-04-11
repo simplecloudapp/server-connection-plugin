@@ -7,13 +7,14 @@ import app.simplecloud.plugin.connection.shared.resolver.RegisteredServerResolve
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.config.ServerInfo
 import java.net.InetSocketAddress
+import java.util.concurrent.ConcurrentHashMap
 
 class BungeeCordServerRegistry(
     private val plugin: BungeeCordConnectionPlugin,
     private val proxy: ProxyServer
 ) : ServerRegistry {
 
-    private val servers = mutableMapOf<String, RegisteredServer>()
+    private val servers = ConcurrentHashMap<String, RegisteredServer>()
 
     override fun getRegistered(): Map<String, RegisteredServer> {
         return servers

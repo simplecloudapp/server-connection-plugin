@@ -6,12 +6,13 @@ import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
+import java.util.concurrent.CopyOnWriteArrayList
 
 class VelocityCommandManager(
     private val plugin: VelocityConnectionPlugin,
     private val proxy: ProxyServer,
 ) {
-    private val commands = mutableListOf<String>()
+    private val commands = CopyOnWriteArrayList<String>()
 
     fun registerCommands() {
         val commands = plugin.connectionPlugin.commandConfig.get().commands

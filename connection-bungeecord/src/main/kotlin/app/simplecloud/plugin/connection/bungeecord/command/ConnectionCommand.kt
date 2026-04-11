@@ -1,8 +1,6 @@
 package app.simplecloud.plugin.connection.bungeecord.command
 
 import app.simplecloud.plugin.connection.bungeecord.BungeeCordConnectionPlugin
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.CommandSender
@@ -26,15 +24,14 @@ class ConnectionCommand(
         }
 
         audience.sendMessage(messages.send(messages.command.configReloading))
-        try {
-            CoroutineScope(Dispatchers.IO).launch {
+        plugin.connectionPlugin.scope.launch {
+            try {
                 plugin.connectionPlugin.reload()
-
                 audience.sendMessage(messages.send(messages.command.configReloadedSuccess))
+            } catch (e: Exception) {
+                audience.sendMessage(messages.send(messages.command.configReloadedFailed))
+                logger.error("Failed to reload config", e)
             }
-        } catch (e: Exception) {
-            audience.sendMessage(messages.send(messages.command.configReloadedFailed))
-            logger.error("Failed to reload config", e)
         }
     }
 

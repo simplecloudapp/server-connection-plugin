@@ -59,7 +59,7 @@ class VelocityConnectionPlugin @Inject constructor(
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
         commandManager.unregisterCommands()
-        scope.launch { connectionPlugin.shutdown() }
+        connectionPlugin.shutdown()
         scope.cancel()
     }
 
@@ -75,7 +75,7 @@ class VelocityConnectionPlugin @Inject constructor(
         if (connectionPlugin.connectionConfig.get().registration.enabled) {
             val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
             additionalServers.forEach {
-                val info = ServerInfo(it.name, InetSocketAddress.createUnresolved(it.address, it.port.toInt()))
+                val info = ServerInfo(it.name, InetSocketAddress.createUnresolved(it.address, it.port))
                 server.registerServer(info)
                 logger.info("Additional server ${info.name} has been registered!")
             }

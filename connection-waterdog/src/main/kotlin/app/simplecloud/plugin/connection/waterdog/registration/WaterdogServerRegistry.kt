@@ -7,13 +7,14 @@ import app.simplecloud.plugin.connection.waterdog.WaterdogConnectionPlugin
 import dev.waterdog.waterdogpe.ProxyServer
 import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import java.net.InetSocketAddress
+import java.util.concurrent.ConcurrentHashMap
 
 class WaterdogServerRegistry(
     private val plugin: WaterdogConnectionPlugin,
     private val proxy: ProxyServer
 ) : ServerRegistry {
 
-    private val servers = mutableMapOf<String, RegisteredServer>()
+    private val servers = ConcurrentHashMap<String, RegisteredServer>()
 
     override fun getRegistered(): Map<String, RegisteredServer> {
         return servers

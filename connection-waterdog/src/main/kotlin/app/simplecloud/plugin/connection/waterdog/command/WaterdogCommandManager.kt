@@ -9,12 +9,13 @@ import dev.waterdog.waterdogpe.command.CommandSettings
 import dev.waterdog.waterdogpe.player.ProxiedPlayer
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import java.util.concurrent.CopyOnWriteArrayList
 
 class WaterdogCommandManager(
     private val plugin: WaterdogConnectionPlugin,
 ) {
 
-    private val commands = mutableListOf<String>()
+    private val commands = CopyOnWriteArrayList<String>()
     private val miniMessage = MiniMessage.miniMessage()
     private val serializer = PlainTextComponentSerializer.plainText()
 

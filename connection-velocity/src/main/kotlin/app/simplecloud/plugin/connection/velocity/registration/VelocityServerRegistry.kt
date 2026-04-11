@@ -7,6 +7,7 @@ import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.ServerInfo
 import java.net.InetSocketAddress
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.jvm.optionals.getOrNull
 
 class VelocityServerRegistry(
@@ -14,7 +15,7 @@ class VelocityServerRegistry(
     private val proxy: ProxyServer
 ) : ServerRegistry {
 
-    private val servers = mutableMapOf<String, RegisteredServer>()
+    private val servers = ConcurrentHashMap<String, RegisteredServer>()
 
     override fun getRegistered(): Map<String, RegisteredServer> {
         return servers

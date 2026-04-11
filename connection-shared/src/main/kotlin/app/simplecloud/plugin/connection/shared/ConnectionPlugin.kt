@@ -10,6 +10,10 @@ import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.await
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -21,7 +25,9 @@ class ConnectionPlugin(
 ) {
 
     private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
-    private val listener = ServerEventListener(api, registry)
+    private val listener = ServerEventListener(api, registry) { connectionConfig.get().registration.ignoreServerGroupsAndPersistentServers }
+
+    val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     val connectionConfig = ConfigurationFactory(File(dir, "config.yml"), ConnectionConfig::class.java)
     val messageConfig = ConfigurationFactory(File(dir, "messages.yml"), MessageConfig::class.java)
@@ -44,6 +50,7 @@ class ConnectionPlugin(
         if (connectionConfig.get().registration.enabled) {
             listener.stop()
         }
+        scope.cancel()
     }
 
     fun reload() {

@@ -40,7 +40,7 @@ data class RegistrationConfig(
 data class RegistrationServer(
     val name: String = "",
     val address: String = "",
-    val port: Long = 0L
+    val port: Int = 0
 )
 
 @ConfigSerializable

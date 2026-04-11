@@ -6,7 +6,7 @@ shadow = "9.4.1"
 minotaur = "2.9.0"
 
 simplecloud-api = "0.1.0-platform.23-dev.1775473227066-1c0c25a"
-simplecloud-plugin-api = "0.0.1-platform.1775925595564-70e1581"
+simplecloud-plugin-api = "0.0.1-platform.1775946101240-f45d1bc"
 
 velocity = "3.5.0-SNAPSHOT"
 bungeecord = "1.21-R0.4"

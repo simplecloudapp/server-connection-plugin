@@ -7,13 +7,14 @@ import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.plugin.Command
+import java.util.concurrent.CopyOnWriteArrayList
 
 class BungeeCordCommandManager(
     private val plugin: BungeeCordConnectionPlugin,
     private val audiences: BungeeAudiences,
 ) {
 
-    private val commands = mutableListOf<String>()
+    private val commands = CopyOnWriteArrayList<String>()
 
     fun registerCommands() {
         val commands = plugin.connectionPlugin.commandConfig.get().commands

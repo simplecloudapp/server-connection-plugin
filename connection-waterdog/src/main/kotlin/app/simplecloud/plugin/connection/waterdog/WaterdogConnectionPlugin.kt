@@ -39,7 +39,7 @@ class WaterdogConnectionPlugin : Plugin() {
 
     override fun onDisable() {
         commandManager.unregisterCommands()
-        scope.launch { connectionPlugin.shutdown() }
+        connectionPlugin.shutdown()
         scope.cancel()
     }
 
@@ -55,7 +55,7 @@ class WaterdogConnectionPlugin : Plugin() {
         if (connectionPlugin.connectionConfig.get().registration.enabled) {
             val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
             additionalServers.forEach {
-                val address = InetSocketAddress.createUnresolved(it.address, it.port.toInt())
+                val address = InetSocketAddress.createUnresolved(it.address, it.port)
                 val info = BedrockServerInfo(it.name, address, address)
                 proxy.registerServerInfo(info)
                 logger.info("Additional server ${info.serverName} has been registered!")

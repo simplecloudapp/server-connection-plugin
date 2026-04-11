@@ -41,7 +41,7 @@ class BungeeCordConnectionPlugin : Plugin() {
     override fun onDisable() {
         commandManager.unregisterCommands()
         audiences.close()
-        scope.launch { connectionPlugin.shutdown() }
+        connectionPlugin.shutdown()
         scope.cancel()
     }
 
@@ -61,7 +61,7 @@ class BungeeCordConnectionPlugin : Plugin() {
             additionalServers.forEach {
                 val info = proxy.constructServerInfo(
                     it.name,
-                    InetSocketAddress.createUnresolved(it.address, it.port.toInt()),
+                    InetSocketAddress.createUnresolved(it.address, it.port),
                     it.name,
                     false
                 )

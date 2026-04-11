@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager
 class ServerEventListener(
     private val api: CloudApi,
     private val registry: ServerRegistry,
+    private val ignoreList: () -> List<String>,
 ) {
 
     private val logger = LogManager.getLogger(ServerEventListener::class.java)
@@ -54,6 +55,10 @@ class ServerEventListener(
 
     private fun register(server: RegisteredServer) {
         if (server.blueprintConfigurator == "standalone") return
+        if (ignoreList().any { it.equals(server.serverBaseName, ignoreCase = true) }) {
+            logger.info("Ignoring server ${server.serverId} (${server.serverBaseName}) due to ignore list")
+            return
+        }
 
         if (server.persistent) {
             logger.info("Registering server ${server.serverId} (${server.serverBaseName})...")
