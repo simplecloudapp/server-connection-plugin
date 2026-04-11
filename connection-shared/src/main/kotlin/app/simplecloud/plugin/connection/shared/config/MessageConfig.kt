@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.connection.shared.config
 
+import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
 import app.simplecloud.plugin.connection.shared.utilities.DefaultConfigs
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
@@ -19,8 +19,6 @@ data class MessageConfig(
     @Comment("Command Messages")
     val command: ConnectionCommandMessages = ConnectionCommandMessages()
 ) {
-    private val miniMessage = MiniMessage.miniMessage()
-
     private fun tagResolver(): TagResolver {
         val resolvers = variables.map { (key, value) ->
             TagResolver.resolver(key, Tag.selfClosingInserting(miniMessage.deserialize(value)))

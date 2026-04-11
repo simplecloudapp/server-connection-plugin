@@ -5,7 +5,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.shadow)
-    id("maven-publish")
 }
 
 val baseVersion = "0.0.1"
@@ -31,7 +30,6 @@ allprojects {
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.gradleup.shadow")
-    apply(plugin = "maven-publish")
 
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
@@ -52,28 +50,6 @@ subprojects {
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
-        }
-    }
-
-    publishing {
-        repositories {
-            maven {
-                name = "simplecloud"
-                url = uri("https://repo.simplecloud.app/snapshots/")
-                credentials {
-                    username = System.getenv("SIMPLECLOUD_USERNAME")?: (project.findProperty("simplecloudUsername") as? String)
-                    password = System.getenv("SIMPLECLOUD_PASSWORD")?: (project.findProperty("simplecloudPassword") as? String)
-                }
-                authentication {
-                    create<BasicAuthentication>("basic")
-                }
-            }
-        }
-
-        publications {
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
-            }
         }
     }
 
