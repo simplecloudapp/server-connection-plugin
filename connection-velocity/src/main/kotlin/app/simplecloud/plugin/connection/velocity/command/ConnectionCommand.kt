@@ -18,17 +18,17 @@ class ConnectionCommand(
         val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (args.isEmpty() || !args[0].equals("reload", ignoreCase = true)) {
-            source.sendMessage(messages.send(messages.command.commandUsage))
+            source.sendMessage(messages.msg(messages.command.commandUsage))
             return
         }
 
-        source.sendMessage(messages.send(messages.command.configReloading))
+        source.sendMessage(messages.msg(messages.command.configReloading))
         plugin.connectionPlugin.scope.launch {
             try {
                 plugin.connectionPlugin.reload()
-                source.sendMessage(messages.send(messages.command.configReloadedSuccess))
+                source.sendMessage(messages.msg(messages.command.configReloadedSuccess))
             } catch (e: Exception) {
-                source.sendMessage(messages.send(messages.command.configReloadedFailed))
+                source.sendMessage(messages.msg(messages.command.configReloadedFailed))
                 logger.error("Failed to reload config", e)
             }
         }

@@ -1,34 +1,18 @@
 package app.simplecloud.plugin.connection.shared.config
 
-import app.simplecloud.plugin.api.shared.extension.miniMessage
+import app.simplecloud.plugin.api.shared.config.AbstractMessageConfig
+import app.simplecloud.plugin.api.shared.config.VersionedConfig
 import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
 import app.simplecloud.plugin.connection.shared.utilities.DefaultConfigs
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.tag.Tag
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
-import org.spongepowered.configurate.objectmapping.meta.Comment
 
 @ConfigSerializable
 data class MessageConfig(
-    val version: Char = ConfigVersion.VERSION,
-    @Comment("Variables\nReusable variables that can be used throughout the messages\nUsage: <variable_name> will be replaced with the defined value")
-    val variables: Map<String, String> = DefaultConfigs.VARIABLES,
-    @Comment("Kick Messages")
+    override val version: Int = ConfigVersion.VERSION,
+    override val variables: Map<String, String> = DefaultConfigs.VARIABLES,
     val kick: KickMessages = KickMessages(),
-    @Comment("Command Messages")
     val command: ConnectionCommandMessages = ConnectionCommandMessages()
-) {
-    private fun tagResolver(): TagResolver {
-        val resolvers = variables.map { (key, value) ->
-            TagResolver.resolver(key, Tag.selfClosingInserting(miniMessage.deserialize(value)))
-        }
-        return TagResolver.resolver(*resolvers.toTypedArray())
-    }
-
-    fun send(message: String, vararg tagResolver: TagResolver): Component =
-        miniMessage.deserialize(message, TagResolver.resolver(tagResolver(), *tagResolver))
-}
+) : VersionedConfig, AbstractMessageConfig()
 
 @ConfigSerializable
 data class KickMessages(

@@ -7,13 +7,9 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-val baseVersion = "0.0.1"
-val commitHash = System.getenv("COMMIT_HASH")
-val snapshotversion = "${baseVersion}-platform.$commitHash"
-
 allprojects {
     group = "app.simplecloud.plugin"
-    version = if (commitHash != null) snapshotversion else baseVersion
+    version = "1.0.0-beta.1"
 
     repositories {
         mavenCentral()
@@ -28,12 +24,13 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.gradleup.shadow")
+    apply {
+        plugin("org.jetbrains.kotlin.jvm")
+        plugin("com.gradleup.shadow")
+    }
 
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
-        implementation(rootProject.libs.kotlin.jvm)
         implementation(rootProject.libs.kotlin.coroutines.core)
         implementation(rootProject.libs.log4j.api)
     }
@@ -41,9 +38,9 @@ subprojects {
     kotlin {
         jvmToolchain(21)
         compilerOptions {
-            apiVersion.set(KotlinVersion.KOTLIN_2_0)
-            jvmTarget.set(JvmTarget.JVM_21)
-            freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            apiVersion = KotlinVersion.KOTLIN_2_4
+            jvmTarget = JvmTarget.JVM_21
+            freeCompilerArgs = listOf("-Xannotation-default-target=param-property")
         }
     }
 
@@ -55,10 +52,9 @@ subprojects {
 
     tasks.named("shadowJar", ShadowJar::class) {
         mergeServiceFiles()
-        relocate("org.spongepowered", "app.simplecloud.plugin.relocate.spongepowered")
-        relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.relocate.plugin.api")
+        relocate("org.spongepowered", "app.simplecloud.plugin.connection.shaded.spongepowered")
+        relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.connection.shaded.plugin.api")
         archiveFileName.set("${project.name}.jar")
-        archiveClassifier.set("")
     }
 
     tasks.test {

@@ -44,7 +44,7 @@ class ConnectionCommand(
 
     private fun sendMessage(sender: CommandSender, rawMessage: String) {
         val messages = plugin.connectionPlugin.messageConfig.get()
-        val component = messages.send(rawMessage)
+        val component = messages.msg(rawMessage)
         val plain = serializer.serialize(component)
         sender.sendMessage(plain)
     }

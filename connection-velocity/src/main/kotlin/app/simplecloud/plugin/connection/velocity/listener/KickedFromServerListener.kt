@@ -53,7 +53,7 @@ class KickedFromServerListener(
         }
 
         event.result = KickedFromServerEvent.DisconnectPlayer.create(
-            messages.send(messages.kick.noFallbackServers)
+            messages.msg(messages.kick.noFallbackServers)
         )
     }
 

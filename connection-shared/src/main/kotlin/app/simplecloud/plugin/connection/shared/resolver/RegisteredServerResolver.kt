@@ -19,9 +19,6 @@ object RegisteredServerResolver {
             Placeholder.unparsed("name", server.serverBaseName),
             Placeholder.unparsed("numerical_id", server.numericalId.toString()),
             Placeholder.unparsed("id", server.serverId),
-            *server.properties.map { (key, value) ->
-                Placeholder.unparsed(key.lowercase(), value.toString())
-            }.toTypedArray()
         )
 
         val component = MiniMessage.miniMessage().deserialize(pattern, resolver)

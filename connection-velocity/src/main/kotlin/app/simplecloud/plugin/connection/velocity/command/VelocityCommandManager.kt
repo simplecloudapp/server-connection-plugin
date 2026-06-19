@@ -86,7 +86,7 @@ class VelocityCommandManager(
                     ?: continue
 
                 if (currentServerName != null && server.serverInfo.name == currentServerName) {
-                    source.sendMessage(messages.send(command.messages.alreadyConnected))
+                    source.sendMessage(messages.msg(command.messages.alreadyConnected))
                     return
                 }
 
@@ -94,7 +94,7 @@ class VelocityCommandManager(
                 return
             }
 
-            source.sendMessage(messages.send(command.messages.noTargetConnectionFound))
+            source.sendMessage(messages.msg(command.messages.noTargetConnectionFound))
         }
 
         override fun hasPermission(invocation: SimpleCommand.Invocation): Boolean {

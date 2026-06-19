@@ -1,7 +1,7 @@
 package app.simplecloud.plugin.connection.shared.registration
 
 /**
- * Manages server registration and lifecycle within the proxy network.
+ * Manages server registration within the simplecloud network.
  */
 interface ServerRegistry {
 

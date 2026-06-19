@@ -6,7 +6,10 @@ import app.simplecloud.plugin.connection.shared.config.RuleType
 
 object ConnectionResolver {
 
-    fun findConnection(name: String, connections: List<ConnectionEntry>): ConnectionEntry? {
+    fun findConnection(
+        name: String,
+        connections: List<ConnectionEntry>
+    ): ConnectionEntry? {
         return connections.find { it.name.equals(name, ignoreCase = true) }
     }
 

@@ -10,10 +10,7 @@ import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -47,9 +44,7 @@ class ConnectionPlugin(
 
     fun shutdown() {
         logger.info("SimpleCloud v3 connection plugin uninitialized!")
-        if (connectionConfig.get().registration.enabled) {
-            listener.stop()
-        }
+        stopRegistration()
         scope.cancel()
     }
 
@@ -61,8 +56,16 @@ class ConnectionPlugin(
 
     private suspend fun startRegistration() {
         if (connectionConfig.get().registration.enabled) {
+            logger.info("Starting server registration...")
             loadExistingServers()
             listener.start()
+        }
+    }
+
+    private fun stopRegistration() {
+        if (connectionConfig.get().registration.enabled) {
+            logger.info("Stopping server registration...")
+            listener.stop()
         }
     }
 

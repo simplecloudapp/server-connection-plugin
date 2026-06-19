@@ -61,7 +61,7 @@ class PlayerChooseInitialServerListener(
         }
 
         event.setInitialServer(null)
-        event.player.disconnect(messages.send(messages.kick.noTargetConnection))
+        event.player.disconnect(messages.msg(messages.kick.noTargetConnection))
     }
 
 }
