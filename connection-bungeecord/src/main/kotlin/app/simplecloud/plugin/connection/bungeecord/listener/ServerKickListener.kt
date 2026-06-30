@@ -56,7 +56,7 @@ class ServerKickListener(
 
         event.isCancelled = true
         val audience = audiences.player(event.player)
-        audience.sendMessage(messageConfig.send(messageConfig.kick.noFallbackServers))
+        audience.sendMessage(messageConfig.msg(messageConfig.kick.noFallbackServers))
         event.player.disconnect()
     }
 

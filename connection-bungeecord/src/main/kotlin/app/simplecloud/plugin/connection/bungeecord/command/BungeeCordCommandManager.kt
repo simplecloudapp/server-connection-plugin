@@ -93,7 +93,7 @@ class BungeeCordCommandManager(
                 ?: continue
 
             if (currentServerName != null && targetServer.name.equals(currentServerName, ignoreCase = true)) {
-                audience.sendMessage(messages.send(command.messages.alreadyConnected))
+                audience.sendMessage(messages.msg(command.messages.alreadyConnected))
                 return
             }
 
@@ -101,7 +101,7 @@ class BungeeCordCommandManager(
             return
         }
 
-        audience.sendMessage(messages.send(command.messages.noTargetConnectionFound))
+        audience.sendMessage(messages.msg(command.messages.noTargetConnectionFound))
     }
 
 }

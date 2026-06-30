@@ -65,7 +65,7 @@ class ServerConnectListener(
 
         event.isCancelled = true
         val audience = audiences.player(event.player)
-        audience.sendMessage(messages.send(messages.kick.noTargetConnection))
+        audience.sendMessage(messages.msg(messages.kick.noTargetConnection))
         event.player.disconnect()
     }
 

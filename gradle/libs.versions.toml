@@ -4,6 +4,7 @@ kotlin-coroutines = "1.11.0"
 
 shadow = "9.4.2"
 minotaur = "2.9.0"
+blossom = "2.2.0"
 
 simplecloud-api = "0.1.0-platform.30-dev.1779808903098-53ec137"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
@@ -48,3 +49,4 @@ adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-seri
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
+blossom = { id = "net.kyori.blossom", version.ref = "blossom" }

@@ -19,17 +19,17 @@ class ConnectionCommand(
         val audience = audiences.sender(sender)
 
         if (args.firstOrNull()?.equals("reload", ignoreCase = true) != true) {
-            audience.sendMessage(messages.send(messages.command.commandUsage))
+            audience.sendMessage(messages.msg(messages.command.commandUsage))
             return
         }
 
-        audience.sendMessage(messages.send(messages.command.configReloading))
+        audience.sendMessage(messages.msg(messages.command.configReloading))
         plugin.connectionPlugin.scope.launch {
             try {
                 plugin.connectionPlugin.reload()
-                audience.sendMessage(messages.send(messages.command.configReloadedSuccess))
+                audience.sendMessage(messages.msg(messages.command.configReloadedSuccess))
             } catch (e: Exception) {
-                audience.sendMessage(messages.send(messages.command.configReloadedFailed))
+                audience.sendMessage(messages.msg(messages.command.configReloadedFailed))
                 logger.error("Failed to reload config", e)
             }
         }
