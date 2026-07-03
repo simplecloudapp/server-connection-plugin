@@ -1,24 +1,22 @@
-package app.simplecloud.plugin.connection.shared.listener
+package app.simplecloud.plugin.connection.shared.registration
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.api.event.Subscription
 import app.simplecloud.api.group.GroupServerType
 import app.simplecloud.api.server.Server
 import app.simplecloud.api.server.ServerState
-import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
-import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.LogManager
 
-class ServerEventListener(
+class ServerRegisterer(
     private val api: CloudApi,
     private val registry: ServerRegistry,
     private val ignored: () -> List<String>,
 ) {
 
-    private val logger = LogManager.getLogger(ServerEventListener::class.java)
+    private val logger = LogManager.getLogger(ServerRegisterer::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var subscriptions: MutableList<Subscription> = mutableListOf()
+    private val subscriptions: MutableList<Subscription> = mutableListOf()
 
     fun start() {
         subscriptions.add(

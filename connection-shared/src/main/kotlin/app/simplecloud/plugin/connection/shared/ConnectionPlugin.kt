@@ -8,7 +8,7 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
-import app.simplecloud.plugin.connection.shared.listener.ServerEventListener
+import app.simplecloud.plugin.connection.shared.registration.ServerRegisterer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
@@ -22,7 +22,7 @@ class ConnectionPlugin(
 ) {
 
     private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
-    private val listener = ServerEventListener(api, registry) { connectionConfig.get().registration.ignoreServerGroupsAndPersistentServers }
+    private val registerer = ServerRegisterer(api, registry) { connectionConfig.get().registration.ignoreServerGroupsAndPersistentServers }
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -58,14 +58,14 @@ class ConnectionPlugin(
         if (connectionConfig.get().registration.enabled) {
             logger.info("Starting server registration...")
             loadExistingServers()
-            listener.start()
+            registerer.start()
         }
     }
 
     private fun stopRegistration() {
         if (connectionConfig.get().registration.enabled) {
             logger.info("Stopping server registration...")
-            listener.stop()
+            registerer.stop()
         }
     }
 
@@ -77,6 +77,6 @@ class ConnectionPlugin(
         ).await()
 
         logger.info("Found ${servers.size} servers")
-        servers.forEach { listener.register(it) }
+        servers.forEach { registerer.register(it) }
     }
 }
