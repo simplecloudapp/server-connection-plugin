@@ -15,7 +15,7 @@ modrinth {
     token.set(project.findProperty("modrinthToken") as String? ?: System.getenv("MODRINTH_TOKEN"))
     projectId.set("4Vw4Mgla")
     versionNumber.set(rootProject.version.toString())
-    versionType.set("beta")
+    versionType.set("release")
     uploadFile.set(tasks.shadowJar)
     gameVersions.addAll(
         "1.20",
