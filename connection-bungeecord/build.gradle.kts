@@ -36,7 +36,11 @@ modrinth {
         "1.21.9",
         "1.21.10",
         "1.21.11",
-        )
+        "26.1",
+        "26.1.1",
+        "26.1.2",
+        "26.2",
+    )
     loaders.add("bungeecord")
     loaders.add("waterfall")
     changelog.set("https://docs.simplecloud.app/changelog")
