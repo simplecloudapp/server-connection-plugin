@@ -8,6 +8,7 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
+import app.simplecloud.plugin.connection.shared.config.migration.LegacyConfigMigrator
 import app.simplecloud.plugin.connection.shared.registration.ServerRegisterer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import kotlinx.coroutines.*
@@ -26,12 +27,19 @@ class ConnectionPlugin(
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    val connectionConfig = ConfigurationFactory(File(dir, "config.yml"), ConnectionConfig::class.java)
-    val messageConfig = ConfigurationFactory(File(dir, "messages.yml"), MessageConfig::class.java)
-    val commandConfig = ConfigurationFactory(File(dir, "commands.yml"), CommandConfig::class.java)
+    private val dataDirectory = File(dir)
+    private val configMigrator = LegacyConfigMigrator.create(dataDirectory)
+
+    val connectionConfig = ConfigurationFactory(
+        File(dataDirectory, "config.yml"),
+        ConnectionConfig::class.java,
+        configMigrator
+    )
+    val messageConfig = ConfigurationFactory(File(dataDirectory, "messages.yml"), MessageConfig::class.java)
+    val commandConfig = ConfigurationFactory(File(dataDirectory, "commands.yml"), CommandConfig::class.java)
 
     init {
-        File(dir).mkdirs()
+        dataDirectory.mkdirs()
         connectionConfig.loadOrCreate(ConnectionConfig())
         messageConfig.loadOrCreate(MessageConfig())
         commandConfig.loadOrCreate(CommandConfig())
