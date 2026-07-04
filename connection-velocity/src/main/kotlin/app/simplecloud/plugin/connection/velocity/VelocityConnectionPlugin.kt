@@ -40,7 +40,7 @@ class VelocityConnectionPlugin @Inject constructor(
     private val api = CloudApi.create()
     private val logger = LogManager.getLogger(VelocityConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val registry = VelocityServerRegistry(this, server)
+    private val registry = VelocityServerRegistry(server)
     private val commandManager = VelocityCommandManager(this, server)
 
     val connectionPlugin = ConnectionPlugin(

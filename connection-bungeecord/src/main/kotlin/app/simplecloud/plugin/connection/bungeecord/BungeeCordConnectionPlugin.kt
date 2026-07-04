@@ -24,7 +24,7 @@ class BungeeCordConnectionPlugin : Plugin() {
     val connectionPlugin = ConnectionPlugin(
         dataFolder.toString(),
         api,
-        BungeeCordServerRegistry(this, proxy)
+        BungeeCordServerRegistry(proxy)
     )
 
     override fun onEnable() {

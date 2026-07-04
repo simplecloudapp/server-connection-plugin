@@ -12,13 +12,35 @@ object RegisteredServerResolver {
     private val serializer = PlainTextComponentSerializer.plainText()
 
     fun resolve(server: RegisteredServer, config: RegistrationConfig): String {
-        val pattern = if (!server.persistent) config.serverNamePattern else config.persistentServerNamePattern
+        return resolve(
+            serverId = server.serverId,
+            numericalId = server.numericalId,
+            serverBaseName = server.serverBaseName,
+            properties = server.properties,
+            persistent = server.persistent,
+            config = config,
+        )
+    }
+
+    fun resolve(
+        serverId: String,
+        numericalId: Int,
+        serverBaseName: String,
+        properties: Map<String, Any>,
+        persistent: Boolean,
+        config: RegistrationConfig,
+    ): String {
+        val pattern = if (!persistent) config.serverNamePattern else config.persistentServerNamePattern
 
         val resolver = TagResolver.resolver(
-            Placeholder.unparsed("group", server.serverBaseName),
-            Placeholder.unparsed("name", server.serverBaseName),
-            Placeholder.unparsed("numerical_id", server.numericalId.toString()),
-            Placeholder.unparsed("id", server.serverId),
+            listOf(
+                Placeholder.unparsed("group", serverBaseName),
+                Placeholder.unparsed("name", serverBaseName),
+                Placeholder.unparsed("numerical_id", numericalId.toString()),
+                Placeholder.unparsed("id", serverId),
+            ) + properties.map {
+                Placeholder.unparsed(it.key.lowercase().replace("-", "_"), it.value.toString())
+            }
         )
 
         val component = MiniMessage.miniMessage().deserialize(pattern, resolver)

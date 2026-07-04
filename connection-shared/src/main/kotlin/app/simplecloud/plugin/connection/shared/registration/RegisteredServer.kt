@@ -9,6 +9,7 @@ data class RegisteredServer(
     val ip: String,
     val port: Int,
     val serverBaseName: String,
+    val proxyName: String,
     val properties: Map<String, Any>,
     val blueprintConfigurator: String?,
     val persistent: Boolean,

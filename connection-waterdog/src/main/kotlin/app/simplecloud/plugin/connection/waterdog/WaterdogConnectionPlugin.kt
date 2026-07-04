@@ -23,7 +23,7 @@ class WaterdogConnectionPlugin : Plugin() {
     val connectionPlugin = ConnectionPlugin(
         dataFolder.toString(),
         api,
-        WaterdogServerRegistry(this, proxy)
+        WaterdogServerRegistry(proxy)
     )
 
     override fun onEnable() {

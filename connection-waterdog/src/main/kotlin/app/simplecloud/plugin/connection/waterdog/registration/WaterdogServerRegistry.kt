@@ -2,41 +2,26 @@ package app.simplecloud.plugin.connection.waterdog.registration
 
 import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
-import app.simplecloud.plugin.connection.shared.resolver.RegisteredServerResolver
-import app.simplecloud.plugin.connection.waterdog.WaterdogConnectionPlugin
 import dev.waterdog.waterdogpe.ProxyServer
 import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import java.net.InetSocketAddress
-import java.util.concurrent.ConcurrentHashMap
 
 class WaterdogServerRegistry(
-    private val plugin: WaterdogConnectionPlugin,
     private val proxy: ProxyServer
 ) : ServerRegistry {
 
-    private val servers = ConcurrentHashMap<String, RegisteredServer>()
-
-    override fun getRegistered(): Map<String, RegisteredServer> {
-        return servers
-    }
-
-    override fun register(server: RegisteredServer) {
+    override fun register(proxyName: String, server: RegisteredServer) {
         val address = InetSocketAddress.createUnresolved(server.ip, server.port)
+        proxy.removeServerInfo(proxyName)
         val info = BedrockServerInfo(
-            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.get().registration),
+            proxyName,
             address,
             address
         )
         proxy.registerServerInfo(info)
-        servers[server.serverId] = server
     }
 
-    override fun unregister(server: RegisteredServer) {
-        val name = RegisteredServerResolver.resolve(
-            server,
-            plugin.connectionPlugin.connectionConfig.get().registration
-        )
-        proxy.removeServerInfo(name) ?: return
-        servers.remove(server.serverId)
+    override fun unregister(proxyName: String, server: RegisteredServer) {
+        proxy.removeServerInfo(proxyName)
     }
 }

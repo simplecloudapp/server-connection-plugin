@@ -22,7 +22,7 @@ class ConnectionPlugin(
 ) {
 
     private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
-    private val registerer = ServerRegisterer(api, registry) { connectionConfig.get().registration.ignoreServerGroupsAndPersistentServers }
+    private val registerer = ServerRegisterer(api, registry) { connectionConfig.get().registration }
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 

@@ -5,18 +5,22 @@ import app.simplecloud.api.event.Subscription
 import app.simplecloud.api.group.GroupServerType
 import app.simplecloud.api.server.Server
 import app.simplecloud.api.server.ServerState
+import app.simplecloud.plugin.connection.shared.config.RegistrationConfig
+import app.simplecloud.plugin.connection.shared.resolver.RegisteredServerResolver
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.LogManager
+import java.util.concurrent.ConcurrentHashMap
 
 class ServerRegisterer(
     private val api: CloudApi,
     private val registry: ServerRegistry,
-    private val ignored: () -> List<String>,
+    private val registrationConfig: () -> RegistrationConfig,
 ) {
 
     private val logger = LogManager.getLogger(ServerRegisterer::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val subscriptions: MutableList<Subscription> = mutableListOf()
+    private val registeredServers = ConcurrentHashMap<String, RegisteredServer>()
 
     fun start() {
         subscriptions.add(
@@ -51,39 +55,56 @@ class ServerRegisterer(
         register(convertToRegisteredServer(server))
     }
 
+    fun getRegisteredServers(): Map<String, RegisteredServer> {
+        return registeredServers.toMap()
+    }
+
     private fun register(server: RegisteredServer) {
         if (server.blueprintConfigurator == "standalone") return
-        if (ignored().any { it.equals(server.serverBaseName, ignoreCase = true) }) return
+        if (registrationConfig().ignoreServerGroupsAndPersistentServers.any { it.equals(server.serverBaseName, ignoreCase = true) }) return
 
-        if (server.persistent) {
-            logger.info("Registering server ${server.serverId} (${server.serverBaseName})...")
+        val previousRegistration = registeredServers[server.serverId]
+
+        if (previousRegistration?.proxyName == server.proxyName) {
+            logger.info("Refreshing server ${server.serverId} (${server.proxyName})...")
         } else {
-            logger.info("Registering server ${server.serverId} (${server.serverBaseName}-${server.numericalId})...")
+            previousRegistration?.let {
+                logger.info("Replacing stale registration ${it.serverId} (${it.proxyName}) with ${server.proxyName}...")
+                registry.unregister(it.proxyName, it)
+            }
+            logger.info("Registering server ${server.serverId} (${server.proxyName})...")
         }
 
-        registry.register(server)
+        registry.register(server.proxyName, server)
+        registeredServers[server.serverId] = server
     }
 
     private fun unregister(server: RegisteredServer) {
-        if (registry.getRegistered().containsKey(server.serverId)) {
-            if (server.persistent) {
-                logger.info("Unregistering server ${server.serverId} (${server.serverBaseName})...")
-            } else {
-                logger.info("Unregistering server ${server.serverId} (${server.serverBaseName}-${server.numericalId})...")
-            }
-
-            registry.unregister(server)
-        }
+        val registeredServer = registeredServers.remove(server.serverId) ?: return
+        logger.info("Unregistering server ${server.serverId} (${registeredServer.proxyName})...")
+        registry.unregister(registeredServer.proxyName, registeredServer)
     }
 
     private fun convertToRegisteredServer(server: Server): RegisteredServer {
+        val properties = server.properties ?: emptyMap()
+        val serverBaseName = server.serverBase!!.name!!
+        val proxyName = RegisteredServerResolver.resolve(
+            serverId = server.serverId,
+            numericalId = server.numericalId,
+            serverBaseName = serverBaseName,
+            properties = properties,
+            persistent = server.isFromPersistentServer,
+            config = registrationConfig(),
+        )
+
         return RegisteredServer(
             serverId = server.serverId,
             numericalId = server.numericalId,
             ip = server.ip!!,
             port = server.port!!,
-            serverBaseName = server.serverBase!!.name!!,
-            properties = server.properties ?: emptyMap(),
+            serverBaseName = serverBaseName,
+            proxyName = proxyName,
+            properties = properties,
             blueprintConfigurator = server.blueprint?.configurator,
             persistent = server.isFromPersistentServer
         )

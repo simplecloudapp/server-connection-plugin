@@ -2,39 +2,28 @@ package app.simplecloud.plugin.connection.velocity.registration
 
 import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
-import app.simplecloud.plugin.connection.shared.resolver.RegisteredServerResolver
-import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.ServerInfo
 import java.net.InetSocketAddress
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.jvm.optionals.getOrNull
 
 class VelocityServerRegistry(
-    private val plugin: VelocityConnectionPlugin,
     private val proxy: ProxyServer
 ) : ServerRegistry {
 
-    private val servers = ConcurrentHashMap<String, RegisteredServer>()
-
-    override fun getRegistered(): Map<String, RegisteredServer> {
-        return servers
-    }
-
-    override fun register(server: RegisteredServer) {
+    override fun register(proxyName: String, server: RegisteredServer) {
         val info = ServerInfo(
-            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.get().registration),
+            proxyName,
             InetSocketAddress.createUnresolved(server.ip, server.port)
         )
+        proxy.getServer(proxyName).ifPresent {
+            proxy.unregisterServer(it.serverInfo)
+        }
         proxy.registerServer(info)
-        servers[server.serverId] = server
     }
 
-    override fun unregister(server: RegisteredServer) {
-        val registered = proxy.getServer(
-            RegisteredServerResolver.resolve(server, plugin.connectionPlugin.connectionConfig.get().registration)
-        ).getOrNull() ?: return
-        proxy.unregisterServer(registered.serverInfo)
-        servers.remove(server.serverId)
+    override fun unregister(proxyName: String, server: RegisteredServer) {
+        proxy.getServer(proxyName).ifPresent {
+            proxy.unregisterServer(it.serverInfo)
+        }
     }
 }
