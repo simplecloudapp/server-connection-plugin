@@ -40,6 +40,7 @@ configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref 
 configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
 
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-to-jul = { module = "org.apache.logging.log4j:log4j-to-jul", version.ref = "log4j" }
 
 [bundles]
 configurate = ["configurate-kotlin", "configurate-yaml"]

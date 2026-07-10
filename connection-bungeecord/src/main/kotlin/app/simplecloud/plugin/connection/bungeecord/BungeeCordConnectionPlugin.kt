@@ -20,11 +20,12 @@ class BungeeCordConnectionPlugin : Plugin() {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val audiences = BungeeAudiences.create(this)
     private val commandManager = BungeeCordCommandManager(this, audiences)
+    private val serverRegistry = BungeeCordServerRegistry(proxy)
 
     val connectionPlugin = ConnectionPlugin(
         dataFolder.toString(),
         api,
-        BungeeCordServerRegistry(proxy)
+        serverRegistry
     )
 
     override fun onEnable() {
@@ -68,6 +69,7 @@ class BungeeCordConnectionPlugin : Plugin() {
                 proxy.servers[it.name] = info
                 logger.info("Additional server ${info.name} has been registered!")
             }
+            serverRegistry.refreshServerPriorities()
         }
     }
 

@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":connection-shared"))
     implementation(libs.adventure.platform.bungeecord)
     implementation(libs.bundles.adventure)
+    runtimeOnly(libs.log4j.to.jul)
     compileOnly(libs.simplecloud.api)
     compileOnly(libs.bungeecord.api)
 }
