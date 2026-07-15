@@ -103,7 +103,7 @@ class VelocityCommandManager(
                         "Connection command /$alias for player ${source.username} (${source.uniqueId}) " +
                             "was blocked by rule ${failedRule.name} on target connection ${connection.name}."
                     )
-                    return
+                    continue
                 }
 
                 val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)

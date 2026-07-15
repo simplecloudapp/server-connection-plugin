@@ -104,7 +104,7 @@ class WaterdogCommandManager(
                     "Connection command /$alias for player ${player.name} (${player.uniqueId}) " +
                         "was blocked by rule ${failedRule.name} on target connection ${connection.name}."
                 )
-                return
+                continue
             }
 
             val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
