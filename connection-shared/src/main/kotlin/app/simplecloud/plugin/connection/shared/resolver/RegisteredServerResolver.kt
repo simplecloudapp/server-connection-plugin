@@ -10,6 +10,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 object RegisteredServerResolver {
 
     private val serializer = PlainTextComponentSerializer.plainText()
+    private val invalidPlaceholderNameCharacters = Regex("[^a-z0-9_]")
 
     fun resolve(server: RegisteredServer, config: RegistrationConfig): String {
         return resolve(
@@ -39,11 +40,14 @@ object RegisteredServerResolver {
                 Placeholder.unparsed("numerical_id", numericalId.toString()),
                 Placeholder.unparsed("id", serverId),
             ) + properties.map {
-                Placeholder.unparsed(it.key.lowercase().replace("-", "_"), it.value.toString())
+                Placeholder.unparsed(it.key.toPlaceholderName(), it.value.toString())
             }
         )
 
         val component = MiniMessage.miniMessage().deserialize(pattern, resolver)
         return serializer.serialize(component)
     }
+
+    private fun String.toPlaceholderName(): String =
+        lowercase().replace(invalidPlaceholderNameCharacters, "_")
 }
