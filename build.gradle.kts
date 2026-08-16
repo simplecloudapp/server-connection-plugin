@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -36,21 +35,21 @@ subprojects {
     }
 
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
         compilerOptions {
+            jvmTarget = JvmTarget.JVM_25
+            languageVersion = KotlinVersion.KOTLIN_2_4
             apiVersion = KotlinVersion.KOTLIN_2_4
-            jvmTarget = JvmTarget.JVM_21
-            freeCompilerArgs = listOf("-Xannotation-default-target=param-property")
         }
     }
 
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+            languageVersion.set(JavaLanguageVersion.of(25))
         }
     }
 
-    tasks.named("shadowJar", ShadowJar::class) {
+    tasks.shadowJar {
         mergeServiceFiles()
         relocate("org.spongepowered", "app.simplecloud.plugin.connection.shaded.spongepowered")
         relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.connection.shaded.plugin.api")
@@ -62,9 +61,11 @@ subprojects {
     }
 
     tasks.processResources {
-        expand(
-            "version" to project.version
-        )
+        filesMatching(listOf("plugin.yml", "bungee.yml")) {
+            expand(
+                "version" to project.version
+            )
+        }
     }
 
 }
