@@ -1,26 +1,25 @@
 [versions]
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 kotlin-coroutines = "1.11.0"
 
-shadow = "9.4.2"
+shadow = "9.6.1"
 minotaur = "2.9.0"
 blossom = "2.2.0"
 
 simplecloud-api = "0.1.0-platform.30-dev.1779808903098-53ec137"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
-velocity = "3.5.0-SNAPSHOT"
+velocity = "4.1.0-SNAPSHOT"
 bungeecord = "1.21-R0.4"
-waterdog = "2.0.3"
+waterdog = "2.0.4-SNAPSHOT"
 
-adventure-api = "5.1.1"
+adventure-api = "5.2.0"
 adventure-platform-bungeecord = "4.4.1"
 
 configurate = "4.2.0"
-log4j = "2.26.0"
+log4j = "2.26.1"
 
 [libraries]
-kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 
