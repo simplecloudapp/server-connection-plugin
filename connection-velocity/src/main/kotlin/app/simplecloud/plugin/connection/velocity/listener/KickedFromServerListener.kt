@@ -11,7 +11,7 @@ class KickedFromServerListener(
     private val proxy: ProxyServer,
 ) {
 
-    @Subscribe
+    @Subscribe(priority = 1000)
     fun onKickedFromServer(event: KickedFromServerEvent) {
         val config = plugin.connectionPlugin.connectionConfig.get()
         val messages = plugin.connectionPlugin.messageConfig.get()

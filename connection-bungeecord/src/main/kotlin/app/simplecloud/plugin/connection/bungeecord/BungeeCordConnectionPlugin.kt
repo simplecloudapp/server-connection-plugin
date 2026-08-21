@@ -75,7 +75,7 @@ class BungeeCordConnectionPlugin : Plugin() {
 
     private fun registerListeners() {
         proxy.pluginManager.registerListener(this, ServerConnectListener(this, audiences))
-        proxy.pluginManager.registerListener(this, ServerKickListener(this, audiences))
+        proxy.pluginManager.registerListener(this, ServerKickListener(this))
     }
 
     private fun registerCommands() {
