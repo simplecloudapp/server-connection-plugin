@@ -9,24 +9,20 @@ version: 2
 # ───────────────────────────────────────────────────────────────────────────────
 commands:
   - name: lobby
-
     # Alternative command names that behave like the main command.
     aliases:
       - l
       - hub
       - quit
       - leave
-
     # Leave empty to allow every player to use this command.
     permission: ''
-
     # Connection targets to try. Higher priority values are tried first.
     target-connections:
       - name: lobby
         priority: 0
         # Optional source filters. Leave empty to allow this target from anywhere.
         from: []
-
     # Command-specific feedback messages.
     messages:
       already-connected: '<color:#dc2626>You are already connected to this lobby!'
