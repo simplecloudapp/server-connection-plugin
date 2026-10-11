@@ -7,8 +7,9 @@ import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder.Status
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.jvm.optionals.getOrNull
 
 class VelocityCommandManager(
     private val plugin: VelocityConnectionPlugin,
@@ -44,7 +45,7 @@ class VelocityCommandManager(
         private val proxy: ProxyServer,
         private val command: CommandEntry,
     ) : SimpleCommand {
-        private val logger = LogManager.getLogger(ConnectionCommand::class.java)
+        private val logger = LoggerFactory.getLogger(ConnectionCommand::class.java)
 
         override fun execute(invocation: SimpleCommand.Invocation) {
             val source = invocation.source()
@@ -65,7 +66,7 @@ class VelocityCommandManager(
                 return
             }
 
-            val currentServerName = source.currentServer.orElse(null)?.serverInfo?.name
+            val currentServerName = source.currentServer.getOrNull()?.serverInfo?.name
             val serverNames = proxy.allServers.map { it.serverInfo.name }
             val sortedTargets = command.targetConnections.sortedByDescending { it.priority }
 
@@ -116,7 +117,7 @@ class VelocityCommandManager(
                 }
 
                 val server = matchingNames
-                    .mapNotNull { proxy.getServer(it).orElse(null) }
+                    .mapNotNull { name -> proxy.getServer(name).getOrNull() }
                     .minByOrNull { it.playersConnected.size }
                 if (server == null) {
                     logger.warn(
@@ -164,7 +165,7 @@ class VelocityCommandManager(
                     }
 
                     val attemptedServer = result.attemptedConnection.serverInfo.name
-                    val reason = result.reasonComponent.map { it.toString() }.orElse("not provided")
+                    val reason = result.reasonComponent.getOrNull()?.toString() ?: "not provided"
                     if (result.status == Status.CONNECTION_CANCELLED) {
                         logger.warn(
                             "Connection command /$alias for player ${source.username} (${source.uniqueId}) " +

@@ -3,13 +3,13 @@ package app.simplecloud.plugin.connection.velocity.command
 import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.command.SimpleCommand
 import kotlinx.coroutines.launch
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 
 class ConnectionCommand(
     private val plugin: VelocityConnectionPlugin,
 ) : SimpleCommand {
 
-    private val logger = LogManager.getLogger(ConnectionCommand::class.java)
+    private val logger = LoggerFactory.getLogger(ConnectionCommand::class.java)
 
     override fun execute(invocation: SimpleCommand.Invocation) {
         val args = invocation.arguments()

@@ -1,14 +1,13 @@
 package app.simplecloud.plugin.connection.shared.config
 
 import app.simplecloud.plugin.api.shared.config.VersionedConfig
-import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
-import app.simplecloud.plugin.connection.shared.utilities.DefaultConfigs
+import app.simplecloud.plugin.connection.shared.utilities.config.ConfigVersion
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class CommandConfig(
     override val version: Int = ConfigVersion.VERSION,
-    val commands: List<CommandEntry> = DefaultConfigs.COMMANDS,
+    val commands: List<CommandEntry> = listOf(),
 ) : VersionedConfig
 
 @ConfigSerializable

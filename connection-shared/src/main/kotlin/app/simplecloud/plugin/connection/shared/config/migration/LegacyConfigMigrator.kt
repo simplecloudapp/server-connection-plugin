@@ -20,7 +20,7 @@ import app.simplecloud.plugin.connection.shared.config.NetworkJoinTargetsConfig
 import app.simplecloud.plugin.connection.shared.config.RegistrationConfig
 import app.simplecloud.plugin.connection.shared.config.RuleType
 import app.simplecloud.plugin.connection.shared.config.TargetConnection
-import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
+import app.simplecloud.plugin.connection.shared.utilities.config.ConfigVersion
 import org.spongepowered.configurate.CommentedConfigurationNode
 import java.io.File
 import java.util.Locale

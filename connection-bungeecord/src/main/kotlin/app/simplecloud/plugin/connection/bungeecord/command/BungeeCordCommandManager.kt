@@ -9,7 +9,7 @@ import net.md_5.bungee.api.ServerConnectRequest
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.plugin.Command
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.util.concurrent.CopyOnWriteArrayList
 
 class BungeeCordCommandManager(
@@ -18,7 +18,7 @@ class BungeeCordCommandManager(
 ) {
 
     private val commands = CopyOnWriteArrayList<String>()
-    private val logger = LogManager.getLogger(BungeeCordCommandManager::class.java)
+    private val logger = LoggerFactory.getLogger(BungeeCordCommandManager::class.java)
 
     fun registerCommands() {
         val commands = plugin.connectionPlugin.commandConfig.get().commands

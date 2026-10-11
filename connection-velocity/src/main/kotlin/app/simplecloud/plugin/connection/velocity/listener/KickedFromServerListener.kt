@@ -5,6 +5,7 @@ import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.KickedFromServerEvent
 import com.velocitypowered.api.proxy.ProxyServer
+import kotlin.jvm.optionals.getOrNull
 
 class KickedFromServerListener(
     private val plugin: VelocityConnectionPlugin,
@@ -43,7 +44,7 @@ class KickedFromServerListener(
             if (matchingNames.isEmpty()) continue
 
             val server = matchingNames
-                .mapNotNull { proxy.getServer(it).orElse(null) }
+                .mapNotNull { name -> proxy.getServer(name).getOrNull() }
                 .filter { it.serverInfo.name != kickedServerName }
                 .minByOrNull { it.playersConnected.size }
                 ?: continue

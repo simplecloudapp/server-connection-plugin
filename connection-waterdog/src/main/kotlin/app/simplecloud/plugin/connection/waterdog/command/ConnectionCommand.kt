@@ -6,7 +6,7 @@ import dev.waterdog.waterdogpe.command.CommandSender
 import dev.waterdog.waterdogpe.command.CommandSettings
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 
 class ConnectionCommand(
     private val plugin: WaterdogConnectionPlugin,
@@ -17,7 +17,7 @@ class ConnectionCommand(
         .build()
 ) {
 
-    private val logger = LogManager.getLogger(ConnectionCommand::class.java)
+    private val logger = LoggerFactory.getLogger(ConnectionCommand::class.java)
     private val serializer = PlainTextComponentSerializer.plainText()
 
     override fun onExecute(sender: CommandSender, alias: String?, args: Array<out String>): Boolean {

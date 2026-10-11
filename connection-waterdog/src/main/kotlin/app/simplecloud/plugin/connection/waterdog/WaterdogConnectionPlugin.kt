@@ -9,12 +9,12 @@ import app.simplecloud.plugin.connection.waterdog.registration.WaterdogServerReg
 import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import dev.waterdog.waterdogpe.plugin.Plugin
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 
 class WaterdogConnectionPlugin : Plugin() {
 
-    private val logger = LogManager.getLogger(WaterdogConnectionPlugin::class.java)
+    private val logger = LoggerFactory.getLogger(WaterdogConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val commandManager = WaterdogCommandManager(this)
 

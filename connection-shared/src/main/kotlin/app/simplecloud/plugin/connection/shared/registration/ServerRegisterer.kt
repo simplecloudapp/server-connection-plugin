@@ -9,7 +9,7 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.utilities.RegisteredServerResolver
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 
 class ServerRegisterer(
@@ -18,7 +18,7 @@ class ServerRegisterer(
     private val config: ConfigurationFactory<ConnectionConfig>,
 ) {
 
-    private val logger = LogManager.getLogger(ServerRegisterer::class.java)
+    private val logger = LoggerFactory.getLogger(ServerRegisterer::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val subscriptions: MutableList<Subscription> = mutableListOf()
     private val registeredServers = ConcurrentHashMap<String, RegisteredServer>()

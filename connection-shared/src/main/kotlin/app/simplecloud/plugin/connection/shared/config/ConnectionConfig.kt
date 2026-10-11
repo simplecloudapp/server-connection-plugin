@@ -3,8 +3,7 @@ package app.simplecloud.plugin.connection.shared.config
 import app.simplecloud.plugin.api.shared.config.VersionedConfig
 import app.simplecloud.plugin.api.shared.matcher.OperationType
 import app.simplecloud.plugin.api.shared.matcher.ServerMatcherConfiguration
-import app.simplecloud.plugin.connection.shared.utilities.ConfigVersion
-import app.simplecloud.plugin.connection.shared.utilities.DefaultConfigs
+import app.simplecloud.plugin.connection.shared.utilities.config.ConfigVersion
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
@@ -12,9 +11,9 @@ data class ConnectionConfig(
     override val version: Int = ConfigVersion.VERSION,
     val registration: RegistrationConfig = RegistrationConfig(),
     val address: AddressConfig = AddressConfig(),
-    val connections: List<ConnectionEntry> = DefaultConfigs.CONNECTIONS,
-    val networkJoinTargets: NetworkJoinTargetsConfig = DefaultConfigs.NETWORK_JOIN_TARGETS,
-    val fallback: FallbackConfig = DefaultConfigs.FALLBACK,
+    val connections: List<ConnectionEntry> = listOf(),
+    val networkJoinTargets: NetworkJoinTargetsConfig = NetworkJoinTargetsConfig(),
+    val fallback: FallbackConfig = FallbackConfig(),
 ) : VersionedConfig
 
 @ConfigSerializable

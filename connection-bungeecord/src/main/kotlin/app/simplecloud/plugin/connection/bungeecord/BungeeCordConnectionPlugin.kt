@@ -9,12 +9,12 @@ import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import kotlinx.coroutines.*
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.plugin.Plugin
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 
 class BungeeCordConnectionPlugin : Plugin() {
 
-    private val logger = LogManager.getLogger(BungeeCordConnectionPlugin::class.java)
+    private val logger = LoggerFactory.getLogger(BungeeCordConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val audiences = BungeeAudiences.create(this)
     private val commandManager = BungeeCordCommandManager(this, audiences)

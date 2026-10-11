@@ -6,7 +6,6 @@ dependencies {
     implementation(project(":connection-shared"))
     implementation(libs.adventure.platform.bungeecord)
     implementation(libs.bundles.adventure)
-    runtimeOnly(libs.log4j.to.jul)
     compileOnly(libs.simplecloud.api)
     compileOnly(libs.bungeecord.api)
 }
@@ -43,8 +42,7 @@ modrinth {
         "26.2",
         "26.3",
     )
-    loaders.add("bungeecord")
-    loaders.add("waterfall")
+    loaders.addAll("bungeecord", "waterfall")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
 }

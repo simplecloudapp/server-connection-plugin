@@ -16,7 +16,7 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.ServerInfo
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 import java.nio.file.Path
 
@@ -36,7 +36,7 @@ class VelocityConnectionPlugin @Inject constructor(
     private val server: ProxyServer,
 ) {
 
-    private val logger = LogManager.getLogger(VelocityConnectionPlugin::class.java)
+    private val logger = LoggerFactory.getLogger(VelocityConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val registry = VelocityServerRegistry(server)
     private val commandManager = VelocityCommandManager(this, server)

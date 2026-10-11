@@ -7,13 +7,14 @@ import app.simplecloud.api.server.ServerState
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
+import app.simplecloud.plugin.connection.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.config.migration.LegacyConfigMigrator
 import app.simplecloud.plugin.connection.shared.registration.ServerRegisterer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.io.File
 
 class ConnectionPlugin(
@@ -22,7 +23,7 @@ class ConnectionPlugin(
 ) {
 
     private val api = CloudApi.create()
-    private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
+    private val logger = LoggerFactory.getLogger(ConnectionPlugin::class.java)
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -77,13 +78,18 @@ class ConnectionPlugin(
 
     private fun createConnectionConfig(): ConfigurationFactory<ConnectionConfig> {
         val file = File(dir, "config.yml")
+        DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
+
         val factory = ConfigurationFactory(file, ConnectionConfig::class.java, LegacyConfigMigrator.create(dir))
         factory.loadOrCreate(ConnectionConfig())
         return factory
     }
 
     private fun <E> createConfig(fileName: String, configClass: Class<E>, default: E): ConfigurationFactory<E> {
-        val factory = ConfigurationFactory(File(dir, fileName), configClass)
+        val file = File(dir, fileName)
+        DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
+
+        val factory = ConfigurationFactory(file, configClass)
         factory.loadOrCreate(default)
         return factory
     }

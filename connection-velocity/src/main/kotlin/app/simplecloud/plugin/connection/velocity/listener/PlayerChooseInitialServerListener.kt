@@ -5,6 +5,7 @@ import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import com.velocitypowered.api.proxy.ProxyServer
+import kotlin.jvm.optionals.getOrNull
 
 class PlayerChooseInitialServerListener(
     private val plugin: VelocityConnectionPlugin,
@@ -16,7 +17,7 @@ class PlayerChooseInitialServerListener(
         val config = plugin.connectionPlugin.connectionConfig.get()
         val messages = plugin.connectionPlugin.messageConfig.get()
 
-        val virtualHost = event.player.virtualHost.map { it.hostName }.orElse(null)
+        val virtualHost = event.player.virtualHost.getOrNull()?.hostName
         if (virtualHost != null) {
             val route = config.address.routes.find { it.subdomain == virtualHost }
             if (route != null) {
@@ -25,7 +26,7 @@ class PlayerChooseInitialServerListener(
                     val serverNames = proxy.allServers.map { it.serverInfo.name }
                     val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
                     val server = matchingNames
-                        .mapNotNull { proxy.getServer(it).orElse(null) }
+                        .mapNotNull { name -> proxy.getServer(name).getOrNull() }
                         .minByOrNull { it.playersConnected.size }
                     if (server != null) {
                         event.setInitialServer(server)
@@ -52,7 +53,7 @@ class PlayerChooseInitialServerListener(
             if (matchingNames.isEmpty()) continue
 
             val server = matchingNames
-                .mapNotNull { proxy.getServer(it).orElse(null) }
+                .mapNotNull { name -> proxy.getServer(name).getOrNull() }
                 .minByOrNull { it.playersConnected.size }
                 ?: continue
 

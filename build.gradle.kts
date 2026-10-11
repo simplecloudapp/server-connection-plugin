@@ -31,7 +31,9 @@ subprojects {
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
         implementation(rootProject.libs.kotlin.coroutines.core)
-        implementation(rootProject.libs.log4j.api)
+
+        compileOnly(rootProject.libs.slf4j.api)
+        compileOnly(rootProject.libs.simplecloud.api)
     }
 
     kotlin {

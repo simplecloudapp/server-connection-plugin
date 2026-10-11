@@ -9,7 +9,7 @@ import dev.waterdog.waterdogpe.command.CommandSettings
 import dev.waterdog.waterdogpe.player.ProxiedPlayer
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 import java.util.concurrent.CopyOnWriteArrayList
 
 class WaterdogCommandManager(
@@ -19,7 +19,7 @@ class WaterdogCommandManager(
     private val commands = CopyOnWriteArrayList<String>()
     private val miniMessage = MiniMessage.miniMessage()
     private val serializer = PlainTextComponentSerializer.plainText()
-    private val logger = LogManager.getLogger(WaterdogCommandManager::class.java)
+    private val logger = LoggerFactory.getLogger(WaterdogCommandManager::class.java)
 
     fun registerCommands() {
         val commands = plugin.connectionPlugin.commandConfig.get().commands
@@ -37,7 +37,7 @@ class WaterdogCommandManager(
         val settingsBuilder = CommandSettings.builder()
             .setAliases(*command.aliases.toTypedArray())
         if (command.permission.isNotEmpty()) {
-            settingsBuilder.setPermission(command.permission)
+            settingsBuilder.permission = command.permission
         }
         val settings = settingsBuilder.build()
 

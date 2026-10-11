@@ -5,14 +5,14 @@ import kotlinx.coroutines.launch
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.plugin.Command
-import org.apache.logging.log4j.LogManager
+import org.slf4j.LoggerFactory
 
 class ConnectionCommand(
     private val plugin: BungeeCordConnectionPlugin,
     private val audiences: BungeeAudiences,
 ) : Command("connection", "simplecloud.connection.reload") {
 
-    private val logger = LogManager.getLogger(ConnectionCommand::class.java)
+    private val logger = LoggerFactory.getLogger(ConnectionCommand::class.java)
 
     override fun execute(sender: CommandSender, args: Array<out String>) {
         val messages = plugin.connectionPlugin.messageConfig.get()
