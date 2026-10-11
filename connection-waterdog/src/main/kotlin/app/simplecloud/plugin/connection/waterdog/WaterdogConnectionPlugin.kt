@@ -1,6 +1,5 @@
 package app.simplecloud.plugin.connection.waterdog
 
-import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import app.simplecloud.plugin.connection.waterdog.command.ConnectionCommand
 import app.simplecloud.plugin.connection.waterdog.command.WaterdogCommandManager
@@ -15,16 +14,11 @@ import java.net.InetSocketAddress
 
 class WaterdogConnectionPlugin : Plugin() {
 
-    private val api = CloudApi.create()
     private val logger = LogManager.getLogger(WaterdogConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val commandManager = WaterdogCommandManager(this)
 
-    val connectionPlugin = ConnectionPlugin(
-        dataFolder.toString(),
-        api,
-        WaterdogServerRegistry(proxy)
-    )
+    val connectionPlugin = ConnectionPlugin(dataFolder, WaterdogServerRegistry(proxy))
 
     override fun onEnable() {
         cleanupServers()

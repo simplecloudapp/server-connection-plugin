@@ -30,9 +30,7 @@ class BungeeCordServerRegistry(
     fun refreshServerPriorities() {
         val serverNames = proxy.servers.keys.toList()
         proxy.config.listeners.forEach { listener ->
-            listener.serverPriority.removeIf { priority ->
-                serverNames.none { it.equals(priority, ignoreCase = true) }
-            }
+            listener.serverPriority.removeIf { priority -> serverNames.none { it.equals(priority, ignoreCase = true) } }
             serverNames.forEach { serverName ->
                 if (listener.serverPriority.none { it.equals(serverName, ignoreCase = true) }) {
                     listener.serverPriority.add(serverName)

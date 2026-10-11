@@ -199,12 +199,9 @@ object LegacyConfigMigrator {
             val usedNames = connections.mapTo(mutableSetOf()) { it.name.lowercase(Locale.ROOT) }
             if (preferredName.lowercase(Locale.ROOT) !in usedNames) return preferredName
 
-            var index = 2
-            while (true) {
-                val candidate = "$preferredName-$index"
-                if (candidate.lowercase(Locale.ROOT) !in usedNames) return candidate
-                index++
-            }
+            return generateSequence(2) { it + 1 }
+                .map { index -> "$preferredName-$index" }
+                .first { candidate -> candidate.lowercase(Locale.ROOT) !in usedNames }
         }
 
         private fun <E> writeSplitConfig(file: File, config: E, javaClass: Class<E>) {

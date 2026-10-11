@@ -1,7 +1,6 @@
-package app.simplecloud.plugin.connection.shared.resolver
+package app.simplecloud.plugin.connection.shared.utilities
 
 import app.simplecloud.plugin.connection.shared.config.RegistrationConfig
-import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -11,17 +10,6 @@ object RegisteredServerResolver {
 
     private val serializer = PlainTextComponentSerializer.plainText()
     private val invalidPlaceholderNameCharacters = Regex("[^a-z0-9_]")
-
-    fun resolve(server: RegisteredServer, config: RegistrationConfig): String {
-        return resolve(
-            serverId = server.serverId,
-            numericalId = server.numericalId,
-            serverBaseName = server.serverBaseName,
-            properties = server.properties,
-            persistent = server.persistent,
-            config = config,
-        )
-    }
 
     fun resolve(
         serverId: String,

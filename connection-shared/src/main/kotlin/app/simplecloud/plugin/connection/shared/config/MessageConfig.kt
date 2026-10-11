@@ -9,7 +9,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 @ConfigSerializable
 data class MessageConfig(
     override val version: Int = ConfigVersion.VERSION,
-    public override val variables: Map<String, String> = DefaultConfigs.VARIABLES,
+    override val variables: Map<String, String> = DefaultConfigs.VARIABLES,
     val kick: KickMessages = KickMessages(),
     val command: ConnectionCommandMessages = ConnectionCommandMessages()
 ) : VersionedConfig, AbstractMessageConfig()

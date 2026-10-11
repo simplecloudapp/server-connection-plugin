@@ -1,6 +1,5 @@
 package app.simplecloud.plugin.connection.velocity
 
-import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
 import app.simplecloud.plugin.connection.velocity.command.ConnectionCommand
 import app.simplecloud.plugin.connection.velocity.command.VelocityCommandManager
@@ -37,15 +36,13 @@ class VelocityConnectionPlugin @Inject constructor(
     private val server: ProxyServer,
 ) {
 
-    private val api = CloudApi.create()
     private val logger = LogManager.getLogger(VelocityConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val registry = VelocityServerRegistry(server)
     private val commandManager = VelocityCommandManager(this, server)
 
     val connectionPlugin = ConnectionPlugin(
-        dataDirectory.toString(),
-        api,
+        dataDirectory.toFile(),
         registry
     )
 

@@ -13,11 +13,7 @@ class WaterdogServerRegistry(
     override fun register(proxyName: String, server: RegisteredServer) {
         val address = InetSocketAddress.createUnresolved(server.ip, server.port)
         proxy.removeServerInfo(proxyName)
-        val info = BedrockServerInfo(
-            proxyName,
-            address,
-            address
-        )
+        val info = BedrockServerInfo(proxyName, address, address)
         proxy.registerServerInfo(info)
     }
 

@@ -17,33 +17,20 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 
 class ConnectionPlugin(
-    dir: String,
-    private val api: CloudApi,
+    private val dir: File,
     registry: ServerRegistry,
 ) {
 
+    private val api = CloudApi.create()
     private val logger = LogManager.getLogger(ConnectionPlugin::class.java)
-    private val registerer = ServerRegisterer(api, registry) { connectionConfig.get().registration }
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val dataDirectory = File(dir)
-    private val configMigrator = LegacyConfigMigrator.create(dataDirectory)
+    val connectionConfig = createConnectionConfig()
+    val messageConfig = createConfig("messages.yml", MessageConfig::class.java, MessageConfig())
+    val commandConfig = createConfig("commands.yml", CommandConfig::class.java, CommandConfig())
 
-    val connectionConfig = ConfigurationFactory(
-        File(dataDirectory, "config.yml"),
-        ConnectionConfig::class.java,
-        configMigrator
-    )
-    val messageConfig = ConfigurationFactory(File(dataDirectory, "messages.yml"), MessageConfig::class.java)
-    val commandConfig = ConfigurationFactory(File(dataDirectory, "commands.yml"), CommandConfig::class.java)
-
-    init {
-        dataDirectory.mkdirs()
-        connectionConfig.loadOrCreate(ConnectionConfig())
-        messageConfig.loadOrCreate(MessageConfig())
-        commandConfig.loadOrCreate(CommandConfig())
-    }
+    private val registerer = ServerRegisterer(api, registry, connectionConfig)
 
     suspend fun start() {
         logger.info("SimpleCloud v3 connection plugin initialized!")
@@ -85,6 +72,19 @@ class ConnectionPlugin(
         ).await()
 
         logger.info("Found ${servers.size} servers")
-        servers.forEach { registerer.register(it) }
+        servers.forEach { server -> registerer.register(server) }
+    }
+
+    private fun createConnectionConfig(): ConfigurationFactory<ConnectionConfig> {
+        val file = File(dir, "config.yml")
+        val factory = ConfigurationFactory(file, ConnectionConfig::class.java, LegacyConfigMigrator.create(dir))
+        factory.loadOrCreate(ConnectionConfig())
+        return factory
+    }
+
+    private fun <E> createConfig(fileName: String, configClass: Class<E>, default: E): ConfigurationFactory<E> {
+        val factory = ConfigurationFactory(File(dir, fileName), configClass)
+        factory.loadOrCreate(default)
+        return factory
     }
 }

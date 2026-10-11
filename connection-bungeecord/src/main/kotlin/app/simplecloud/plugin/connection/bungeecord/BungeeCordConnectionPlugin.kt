@@ -1,6 +1,5 @@
 package app.simplecloud.plugin.connection.bungeecord
 
-import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.connection.bungeecord.command.BungeeCordCommandManager
 import app.simplecloud.plugin.connection.bungeecord.command.ConnectionCommand
 import app.simplecloud.plugin.connection.bungeecord.listener.ServerConnectListener
@@ -15,7 +14,6 @@ import java.net.InetSocketAddress
 
 class BungeeCordConnectionPlugin : Plugin() {
 
-    private val api = CloudApi.create()
     private val logger = LogManager.getLogger(BungeeCordConnectionPlugin::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val audiences = BungeeAudiences.create(this)
@@ -23,8 +21,7 @@ class BungeeCordConnectionPlugin : Plugin() {
     private val serverRegistry = BungeeCordServerRegistry(proxy)
 
     val connectionPlugin = ConnectionPlugin(
-        dataFolder.toString(),
-        api,
+        dataFolder,
         serverRegistry
     )
 

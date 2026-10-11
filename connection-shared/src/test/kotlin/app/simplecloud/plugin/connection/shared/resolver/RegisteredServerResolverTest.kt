@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.connection.shared.resolver
 
 import app.simplecloud.plugin.connection.shared.config.RegistrationConfig
+import app.simplecloud.plugin.connection.shared.utilities.RegisteredServerResolver
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -31,7 +31,7 @@ The Server Connection Plugin provides comprehensive player connection management
 - [x] **Velocity**
 - [x] **BungeeCord**
 - [x] **Waterdog PE**
-- [ ] **Gate**
+- [x] **Gate**
 - [x] **Server registration**: Automatically registers SimpleCloud servers on your proxy
 - [x] **Additional servers**: Add non network servers manually
 - [x] **Connection targets**: Define server groups and persistent servers that players can connect to
@@ -58,9 +58,9 @@ This repository is licensed under [Apache 2.0][license].
 
 [issue-feature-request]: https://github.com/simplecloudapp/server-connection-plugin/discussions/new?category=ideas
 
-[docs-thisproject]: https://docs.simplecloud.app/en/manual/plugin/server-connection
+[docs-thisproject]: https://simplecloud.app/docs/en/manual/plugin/server-connection
 
-[docs-contribute]: https://docs.simplecloud.app/contribute
+[docs-contribute]: https://simplecloud.app/docs/contribute
 
 [modrinth]: https://modrinth.com/plugin/server-connection-plugin
 

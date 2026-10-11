@@ -34,14 +34,12 @@ class WaterdogCommandManager(
     }
 
     private fun registerCommand(command: CommandEntry) {
-        val settings = CommandSettings.builder()
+        val settingsBuilder = CommandSettings.builder()
             .setAliases(*command.aliases.toTypedArray())
-            .apply {
-                if (command.permission.isNotEmpty()) {
-                    permission = command.permission
-                }
-            }
-            .build()
+        if (command.permission.isNotEmpty()) {
+            settingsBuilder.setPermission(command.permission)
+        }
+        val settings = settingsBuilder.build()
 
         val connectionCommand = object : Command(command.name, settings) {
             override fun onExecute(sender: CommandSender, alias: String?, args: Array<out String>): Boolean {
