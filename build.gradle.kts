@@ -63,7 +63,7 @@ subprojects {
     }
 
     tasks.processResources {
-        filesMatching(listOf("plugin.yml", "bungee.yml")) {
+        filesMatching("plugin.yml") {
             expand(
                 "version" to project.version
             )

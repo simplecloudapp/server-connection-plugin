@@ -4,3 +4,5 @@ description: Central proxy plugin for SimpleCloud v3 that registers servers and 
 author: MrManHD
 
 main: app.simplecloud.plugin.connection.bungeecord.BungeeCordConnectionPlugin
+
+depends: [simplecloud-api]

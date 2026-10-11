@@ -2,20 +2,16 @@ package app.simplecloud.plugin.connection.bungeecord
 
 import app.simplecloud.plugin.connection.bungeecord.command.BungeeCordCommandManager
 import app.simplecloud.plugin.connection.bungeecord.command.ConnectionCommand
+import app.simplecloud.plugin.connection.bungeecord.listener.BungeeCordTargetResolver
 import app.simplecloud.plugin.connection.bungeecord.listener.ServerConnectListener
 import app.simplecloud.plugin.connection.bungeecord.listener.ServerKickListener
 import app.simplecloud.plugin.connection.bungeecord.registration.BungeeCordServerRegistry
 import app.simplecloud.plugin.connection.shared.ConnectionPlugin
-import kotlinx.coroutines.*
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.md_5.bungee.api.plugin.Plugin
-import org.slf4j.LoggerFactory
-import java.net.InetSocketAddress
 
 class BungeeCordConnectionPlugin : Plugin() {
 
-    private val logger = LoggerFactory.getLogger(BungeeCordConnectionPlugin::class.java)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val audiences = BungeeAudiences.create(this)
     private val commandManager = BungeeCordCommandManager(this, audiences)
     private val serverRegistry = BungeeCordServerRegistry(proxy)
@@ -27,52 +23,33 @@ class BungeeCordConnectionPlugin : Plugin() {
 
     override fun onEnable() {
         cleanupServers()
-        registerAdditionalServers()
         registerListeners()
         registerCommands()
-
-        scope.launch {
-            connectionPlugin.start()
-        }
+        connectionPlugin.start()
     }
 
     override fun onDisable() {
         commandManager.unregisterCommands()
         audiences.close()
         connectionPlugin.shutdown()
-        scope.cancel()
+    }
+
+    fun reload() {
+        connectionPlugin.reload()
+        commandManager.unregisterCommands()
+        commandManager.registerCommands()
     }
 
     private fun cleanupServers() {
         if (connectionPlugin.connectionConfig.get().registration.enabled) {
-            proxy.servers.clear()
-            proxy.configurationAdapter.servers.clear()
-            proxy.configurationAdapter.listeners.forEach {
-                it.serverPriority.clear()
-            }
-        }
-    }
-
-    private fun registerAdditionalServers() {
-        if (connectionPlugin.connectionConfig.get().registration.enabled) {
-            val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
-            additionalServers.forEach {
-                val info = proxy.constructServerInfo(
-                    it.name,
-                    InetSocketAddress.createUnresolved(it.address, it.port),
-                    it.name,
-                    false
-                )
-                proxy.servers[it.name] = info
-                logger.info("Additional server ${info.name} has been registered!")
-            }
-            serverRegistry.refreshServerPriorities()
+            serverRegistry.clear()
         }
     }
 
     private fun registerListeners() {
-        proxy.pluginManager.registerListener(this, ServerConnectListener(this, audiences))
-        proxy.pluginManager.registerListener(this, ServerKickListener(this))
+        val targetResolver = BungeeCordTargetResolver(proxy)
+        proxy.pluginManager.registerListener(this, ServerConnectListener(this, targetResolver))
+        proxy.pluginManager.registerListener(this, ServerKickListener(this, targetResolver))
     }
 
     private fun registerCommands() {

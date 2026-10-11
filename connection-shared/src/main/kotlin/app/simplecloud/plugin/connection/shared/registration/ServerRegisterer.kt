@@ -57,10 +57,20 @@ class ServerRegisterer(
         register(registeredServer)
     }
 
+    fun refresh() {
+        registeredServers.values.forEach { server ->
+            register(server.copy(proxyName = resolveProxyName(server)))
+        }
+    }
+
     private fun register(server: RegisteredServer) {
         if (server.blueprintConfigurator == "standalone") return
+
         val ignoredNames = config.get().registration.ignoreServerGroupsAndPersistentServers
-        if (ignoredNames.any { name -> name.equals(server.serverBaseName, ignoreCase = true) }) return
+        if (ignoredNames.any { name -> name.equals(server.serverBaseName, ignoreCase = true) }) {
+            unregister(server.serverId)
+            return
+        }
 
         val previousRegistration = registeredServers[server.serverId]
 
@@ -93,26 +103,28 @@ class ServerRegisterer(
             return null
         }
 
-        val properties = server.properties ?: emptyMap()
-        val proxyName = RegisteredServerResolver.resolve(
-            serverId = server.serverId,
-            numericalId = server.numericalId,
-            serverBaseName = serverBaseName,
-            properties = properties,
-            persistent = server.isFromPersistentServer,
-            config = config.get().registration,
-        )
-
-        return RegisteredServer(
+        val registeredServer = RegisteredServer(
             serverId = server.serverId,
             numericalId = server.numericalId,
             ip = ip,
             port = port,
             serverBaseName = serverBaseName,
-            proxyName = proxyName,
-            properties = properties,
+            proxyName = "",
+            properties = server.properties ?: emptyMap(),
             blueprintConfigurator = server.blueprint?.configurator,
             persistent = server.isFromPersistentServer
+        )
+        return registeredServer.copy(proxyName = resolveProxyName(registeredServer))
+    }
+
+    private fun resolveProxyName(server: RegisteredServer): String {
+        return RegisteredServerResolver.resolve(
+            serverId = server.serverId,
+            numericalId = server.numericalId,
+            serverBaseName = server.serverBaseName,
+            properties = server.properties,
+            persistent = server.persistent,
+            config = config.get().registration,
         )
     }
 }

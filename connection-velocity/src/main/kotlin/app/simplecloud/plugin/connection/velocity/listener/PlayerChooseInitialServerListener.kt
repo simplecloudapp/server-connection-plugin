@@ -1,10 +1,13 @@
 package app.simplecloud.plugin.connection.velocity.listener
 
+import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
 import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
+import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
+import com.velocitypowered.api.proxy.server.RegisteredServer
 import kotlin.jvm.optionals.getOrNull
 
 class PlayerChooseInitialServerListener(
@@ -17,23 +20,10 @@ class PlayerChooseInitialServerListener(
         val config = plugin.connectionPlugin.connectionConfig.get()
         val messages = plugin.connectionPlugin.messageConfig.get()
 
-        val virtualHost = event.player.virtualHost.getOrNull()?.hostName
-        if (virtualHost != null) {
-            val route = config.address.routes.find { it.subdomain == virtualHost }
-            if (route != null) {
-                val connection = ConnectionResolver.findConnection(route.targetConnection, config.connections)
-                if (connection != null) {
-                    val serverNames = proxy.allServers.map { it.serverInfo.name }
-                    val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
-                    val server = matchingNames
-                        .mapNotNull { name -> proxy.getServer(name).getOrNull() }
-                        .minByOrNull { it.playersConnected.size }
-                    if (server != null) {
-                        event.setInitialServer(server)
-                        return
-                    }
-                }
-            }
+        val routeServer = findRouteServer(event.player, config)
+        if (routeServer != null) {
+            event.setInitialServer(routeServer)
+            return
         }
 
         if (!config.networkJoinTargets.enabled) return
@@ -63,6 +53,22 @@ class PlayerChooseInitialServerListener(
 
         event.setInitialServer(null)
         event.player.disconnect(messages.msg(messages.kick.noTargetConnection))
+    }
+
+    private fun findRouteServer(player: Player, config: ConnectionConfig): RegisteredServer? {
+        val virtualHost = player.virtualHost.getOrNull()?.hostName ?: return null
+        val route = ConnectionResolver.findRoute(virtualHost, config.address.routes) ?: return null
+        val connection = ConnectionResolver.findConnection(route.targetConnection, config.connections) ?: return null
+
+        val failedRule = ConnectionResolver.checkRules(connection) { permission ->
+            player.hasPermission(permission)
+        }
+        if (failedRule != null) return null
+
+        val serverNames = proxy.allServers.map { it.serverInfo.name }
+        return ConnectionResolver.findMatchingServerNames(connection, serverNames)
+            .mapNotNull { name -> proxy.getServer(name).getOrNull() }
+            .minByOrNull { it.playersConnected.size }
     }
 
 }

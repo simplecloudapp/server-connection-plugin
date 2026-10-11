@@ -14,10 +14,6 @@ import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
-import com.velocitypowered.api.proxy.server.ServerInfo
-import kotlinx.coroutines.*
-import org.slf4j.LoggerFactory
-import java.net.InetSocketAddress
 import java.nio.file.Path
 
 @Plugin(
@@ -36,50 +32,35 @@ class VelocityConnectionPlugin @Inject constructor(
     private val server: ProxyServer,
 ) {
 
-    private val logger = LoggerFactory.getLogger(VelocityConnectionPlugin::class.java)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val registry = VelocityServerRegistry(server)
     private val commandManager = VelocityCommandManager(this, server)
 
-    val connectionPlugin = ConnectionPlugin(
-        dataDirectory.toFile(),
-        registry
-    )
+    val connectionPlugin = ConnectionPlugin(dataDirectory.toFile(), registry)
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         cleanupServers()
-        registerAdditionalServers()
         registerListeners()
         registerCommands()
-
-        scope.launch {
-            connectionPlugin.start()
-        }
+        connectionPlugin.start()
     }
 
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
         commandManager.unregisterCommands()
         connectionPlugin.shutdown()
-        scope.cancel()
+    }
+
+    fun reload() {
+        connectionPlugin.reload()
+        commandManager.unregisterCommands()
+        commandManager.registerCommands()
     }
 
     private fun cleanupServers() {
         if (connectionPlugin.connectionConfig.get().registration.enabled) {
-            server.allServers.forEach {
-                server.unregisterServer(it.serverInfo)
-            }
-        }
-    }
-
-    private fun registerAdditionalServers() {
-        if (connectionPlugin.connectionConfig.get().registration.enabled) {
-            val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
-            additionalServers.forEach {
-                val info = ServerInfo(it.name, InetSocketAddress.createUnresolved(it.address, it.port))
-                server.registerServer(info)
-                logger.info("Additional server ${info.name} has been registered!")
+            server.allServers.forEach { registeredServer ->
+                server.unregisterServer(registeredServer.serverInfo)
             }
         }
     }

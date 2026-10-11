@@ -3,11 +3,16 @@ package app.simplecloud.plugin.connection.shared.connection
 import app.simplecloud.plugin.connection.shared.config.ConnectionEntry
 import app.simplecloud.plugin.connection.shared.config.ConnectionRule
 import app.simplecloud.plugin.connection.shared.config.RuleType
+import app.simplecloud.plugin.connection.shared.config.SubdomainRoute
 
 object ConnectionResolver {
 
     fun findConnection(name: String, connections: List<ConnectionEntry>): ConnectionEntry? {
         return connections.find { it.name.equals(name, ignoreCase = true) }
+    }
+
+    fun findRoute(host: String, routes: List<SubdomainRoute>): SubdomainRoute? {
+        return routes.find { route -> route.subdomain.equals(host, ignoreCase = true) }
     }
 
     fun findMatchingServerNames(connection: ConnectionEntry, servers: List<String>): List<String> {
@@ -23,7 +28,8 @@ object ConnectionResolver {
             val failed = when (rule.type) {
                 RuleType.PERMISSION -> {
                     val hasPermission = permissionChecker(rule.name)
-                    hasPermission != rule.value.toBoolean()
+                    val permissionRequired = rule.value.isEmpty() || rule.value.toBoolean()
+                    hasPermission != permissionRequired
                 }
 
                 RuleType.ENV -> {

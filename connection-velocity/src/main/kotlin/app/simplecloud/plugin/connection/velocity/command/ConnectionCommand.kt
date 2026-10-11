@@ -2,7 +2,6 @@ package app.simplecloud.plugin.connection.velocity.command
 
 import app.simplecloud.plugin.connection.velocity.VelocityConnectionPlugin
 import com.velocitypowered.api.command.SimpleCommand
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 
 class ConnectionCommand(
@@ -23,14 +22,12 @@ class ConnectionCommand(
         }
 
         source.sendMessage(messages.msg(messages.command.configReloading))
-        plugin.connectionPlugin.scope.launch {
-            try {
-                plugin.connectionPlugin.reload()
-                source.sendMessage(messages.msg(messages.command.configReloadedSuccess))
-            } catch (e: Exception) {
-                source.sendMessage(messages.msg(messages.command.configReloadedFailed))
-                logger.error("Failed to reload config", e)
-            }
+        try {
+            plugin.reload()
+            source.sendMessage(messages.msg(messages.command.configReloadedSuccess))
+        } catch (exception: Exception) {
+            source.sendMessage(messages.msg(messages.command.configReloadedFailed))
+            logger.error("Failed to reload config", exception)
         }
     }
 

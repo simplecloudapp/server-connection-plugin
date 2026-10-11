@@ -6,60 +6,43 @@ import app.simplecloud.plugin.connection.waterdog.command.WaterdogCommandManager
 import app.simplecloud.plugin.connection.waterdog.handler.WaterdogJoinHandler
 import app.simplecloud.plugin.connection.waterdog.handler.WaterdogReconnectHandler
 import app.simplecloud.plugin.connection.waterdog.registration.WaterdogServerRegistry
-import dev.waterdog.waterdogpe.network.serverinfo.BedrockServerInfo
 import dev.waterdog.waterdogpe.plugin.Plugin
-import kotlinx.coroutines.*
-import org.slf4j.LoggerFactory
-import java.net.InetSocketAddress
 
 class WaterdogConnectionPlugin : Plugin() {
 
-    private val logger = LoggerFactory.getLogger(WaterdogConnectionPlugin::class.java)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val commandManager = WaterdogCommandManager(this)
 
-    val connectionPlugin = ConnectionPlugin(dataFolder, WaterdogServerRegistry(proxy))
+    val connectionPlugin by lazy { ConnectionPlugin(dataFolder, WaterdogServerRegistry(proxy)) }
 
     override fun onEnable() {
         cleanupServers()
-        registerAdditionalServers()
         registerHandlers()
         registerCommands()
-
-        scope.launch {
-            connectionPlugin.start()
-        }
+        connectionPlugin.start()
     }
 
     override fun onDisable() {
         commandManager.unregisterCommands()
         connectionPlugin.shutdown()
-        scope.cancel()
+    }
+
+    fun reload() {
+        connectionPlugin.reload()
+        commandManager.unregisterCommands()
+        commandManager.registerCommands()
     }
 
     private fun cleanupServers() {
         if (connectionPlugin.connectionConfig.get().registration.enabled) {
-            proxy.servers.forEach {
-                proxy.removeServerInfo(it.serverName)
-            }
-        }
-    }
-
-    private fun registerAdditionalServers() {
-        if (connectionPlugin.connectionConfig.get().registration.enabled) {
-            val additionalServers = connectionPlugin.connectionConfig.get().registration.additionalServers
-            additionalServers.forEach {
-                val address = InetSocketAddress.createUnresolved(it.address, it.port)
-                val info = BedrockServerInfo(it.name, address, address)
-                proxy.registerServerInfo(info)
-                logger.info("Additional server ${info.serverName} has been registered!")
+            proxy.servers.forEach { serverInfo ->
+                proxy.removeServerInfo(serverInfo.serverName)
             }
         }
     }
 
     private fun registerHandlers() {
-        proxy.joinHandler = WaterdogJoinHandler(this)
-        proxy.reconnectHandler = WaterdogReconnectHandler(this)
+        proxy.joinHandler = WaterdogJoinHandler(this, proxy.joinHandler)
+        proxy.reconnectHandler = WaterdogReconnectHandler(this, proxy.reconnectHandler)
     }
 
     private fun registerCommands() {

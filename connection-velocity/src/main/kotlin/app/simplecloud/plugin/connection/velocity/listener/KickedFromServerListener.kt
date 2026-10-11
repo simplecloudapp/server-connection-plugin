@@ -18,6 +18,7 @@ class KickedFromServerListener(
         val messages = plugin.connectionPlugin.messageConfig.get()
 
         if (!config.fallback.enabled) return
+        if (event.kickedDuringServerConnect() && event.player.currentServer.getOrNull() != null) return
 
         val kickedServerName = event.server.serverInfo.name
         val serverNames = proxy.allServers.map { it.serverInfo.name }

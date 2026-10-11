@@ -9,60 +9,91 @@ import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
+import app.simplecloud.plugin.connection.shared.config.RegistrationServer
 import app.simplecloud.plugin.connection.shared.config.migration.LegacyConfigMigrator
+import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
+import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegisterer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 
 class ConnectionPlugin(
     private val dir: File,
-    registry: ServerRegistry,
+    private val registry: ServerRegistry,
 ) {
 
     private val api = CloudApi.create()
     private val logger = LoggerFactory.getLogger(ConnectionPlugin::class.java)
-
-    val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val additionalServers = CopyOnWriteArrayList<RegisteredServer>()
 
     val connectionConfig = createConnectionConfig()
     val messageConfig = createConfig("messages.yml", MessageConfig::class.java, MessageConfig())
     val commandConfig = createConfig("commands.yml", CommandConfig::class.java, CommandConfig())
 
+    private val registrationEnabled = connectionConfig.get().registration.enabled
     private val registerer = ServerRegisterer(api, registry, connectionConfig)
 
-    suspend fun start() {
+    fun start() {
         logger.info("SimpleCloud v3 connection plugin initialized!")
-        startRegistration()
+        validateConnections()
+        if (!registrationEnabled) return
+
+        registerAdditionalServers()
+        scope.launch {
+            startRegistration()
+        }
     }
 
     fun shutdown() {
         logger.info("SimpleCloud v3 connection plugin uninitialized!")
-        stopRegistration()
+        if (registrationEnabled) {
+            logger.info("Stopping server registration...")
+            registerer.stop()
+        }
         scope.cancel()
     }
 
     fun reload() {
-        connectionConfig.loadOrCreate(ConnectionConfig())
-        messageConfig.loadOrCreate(MessageConfig())
-        commandConfig.loadOrCreate(CommandConfig())
+        loadConfig(connectionConfig, "config.yml", ConnectionConfig())
+        loadConfig(messageConfig, "messages.yml", MessageConfig())
+        loadConfig(commandConfig, "commands.yml", CommandConfig())
+        validateConnections()
+
+        if (connectionConfig.get().registration.enabled != registrationEnabled) {
+            logger.warn("Changing registration.enabled only takes effect after a restart")
+        }
+
+        if (registrationEnabled) {
+            unregisterAdditionalServers()
+            registerAdditionalServers()
+            registerer.refresh()
+        }
+    }
+
+    private fun validateConnections() {
+        val config = connectionConfig.get()
+        val referencedNames = config.address.routes.map { route -> route.targetConnection } +
+            config.networkJoinTargets.targetConnections.map { target -> target.name } +
+            config.fallback.targetConnections.flatMap { target -> target.from + target.name } +
+            commandConfig.get().commands.flatMap { command ->
+                command.targetConnections.flatMap { target -> target.from + target.name }
+            }
+
+        referencedNames
+            .distinctBy { name -> name.lowercase() }
+            .filter { name -> ConnectionResolver.findConnection(name, config.connections) == null }
+            .forEach { name -> logger.warn("The connection '$name' is referenced but not defined in config.yml") }
     }
 
     private suspend fun startRegistration() {
-        if (connectionConfig.get().registration.enabled) {
-            logger.info("Starting server registration...")
-            loadExistingServers()
-            registerer.start()
-        }
-    }
-
-    private fun stopRegistration() {
-        if (connectionConfig.get().registration.enabled) {
-            logger.info("Stopping server registration...")
-            registerer.stop()
-        }
+        logger.info("Starting server registration...")
+        loadExistingServers()
+        registerer.start()
     }
 
     private suspend fun loadExistingServers() {
@@ -76,6 +107,34 @@ class ConnectionPlugin(
         servers.forEach { server -> registerer.register(server) }
     }
 
+    private fun registerAdditionalServers() {
+        connectionConfig.get().registration.additionalServers.forEach { additionalServer ->
+            val server = toRegisteredServer(additionalServer)
+            registry.register(server.proxyName, server)
+            additionalServers.add(server)
+            logger.info("Additional server ${server.proxyName} has been registered!")
+        }
+    }
+
+    private fun unregisterAdditionalServers() {
+        additionalServers.forEach { server -> registry.unregister(server.proxyName, server) }
+        additionalServers.clear()
+    }
+
+    private fun toRegisteredServer(server: RegistrationServer): RegisteredServer {
+        return RegisteredServer(
+            serverId = server.name,
+            numericalId = 0,
+            ip = server.address,
+            port = server.port,
+            serverBaseName = server.name,
+            proxyName = server.name,
+            properties = emptyMap(),
+            blueprintConfigurator = null,
+            persistent = true,
+        )
+    }
+
     private fun createConnectionConfig(): ConfigurationFactory<ConnectionConfig> {
         val file = File(dir, "config.yml")
         DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
@@ -86,11 +145,13 @@ class ConnectionPlugin(
     }
 
     private fun <E> createConfig(fileName: String, configClass: Class<E>, default: E): ConfigurationFactory<E> {
-        val file = File(dir, fileName)
-        DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
-
-        val factory = ConfigurationFactory(file, configClass)
-        factory.loadOrCreate(default)
+        val factory = ConfigurationFactory(File(dir, fileName), configClass)
+        loadConfig(factory, fileName, default)
         return factory
+    }
+
+    private fun <E> loadConfig(factory: ConfigurationFactory<E>, fileName: String, default: E) {
+        DefaultConfigInstaller.install(File(dir, fileName).toPath(), javaClass.classLoader)
+        factory.loadOrCreate(default)
     }
 }

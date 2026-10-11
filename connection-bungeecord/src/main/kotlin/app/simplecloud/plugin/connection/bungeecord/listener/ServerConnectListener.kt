@@ -1,72 +1,68 @@
 package app.simplecloud.plugin.connection.bungeecord.listener
 
 import app.simplecloud.plugin.connection.bungeecord.BungeeCordConnectionPlugin
-import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
-import net.kyori.adventure.platform.bungeecord.BungeeAudiences
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 
 class ServerConnectListener(
     private val plugin: BungeeCordConnectionPlugin,
-    private val audiences: BungeeAudiences,
+    private val targetResolver: BungeeCordTargetResolver,
 ) : Listener {
 
     @EventHandler
     fun onServerConnect(event: ServerConnectEvent) {
-        if (event.reason != ServerConnectEvent.Reason.JOIN_PROXY) return
+        when (event.reason) {
+            ServerConnectEvent.Reason.JOIN_PROXY -> handleJoin(event)
+            ServerConnectEvent.Reason.LOBBY_FALLBACK -> handleLobbyFallback(event)
+            ServerConnectEvent.Reason.SERVER_DOWN_REDIRECT -> handleServerDown(event)
+            else -> return
+        }
+    }
 
+    private fun handleJoin(event: ServerConnectEvent) {
         val config = plugin.connectionPlugin.connectionConfig.get()
         val messages = plugin.connectionPlugin.messageConfig.get()
 
-        val virtualHost = event.player.pendingConnection.virtualHost?.hostName
-        if (virtualHost != null) {
-            val route = config.address.routes.find { it.subdomain == virtualHost }
-            if (route != null) {
-                val connection = ConnectionResolver.findConnection(route.targetConnection, config.connections)
-                if (connection != null) {
-                    val serverNames = plugin.proxy.servers.keys.toList()
-                    val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
-                    val targetServer = matchingNames
-                        .mapNotNull { plugin.proxy.servers[it] }
-                        .minByOrNull { it.players.size }
-                    if (targetServer != null) {
-                        event.target = targetServer
-                        return
-                    }
-                }
-            }
+        val targetServer = targetResolver.findJoinTarget(event.player, config)
+        if (targetServer != null) {
+            event.target = targetServer
+            return
         }
 
         if (!config.networkJoinTargets.enabled) return
 
-        val serverNames = plugin.proxy.servers.keys.toList()
-        val sortedTargets = config.networkJoinTargets.targetConnections.sortedByDescending { it.priority }
+        event.isCancelled = true
+        event.player.disconnect(*BungeeComponentSerializer.get().serialize(messages.msg(messages.kick.noTargetConnection)))
+    }
 
-        for (target in sortedTargets) {
-            val connection = ConnectionResolver.findConnection(target.name, config.connections) ?: continue
+    private fun handleLobbyFallback(event: ServerConnectEvent) {
+        if (event.player.server != null) {
+            event.isCancelled = true
+            return
+        }
 
-            val failedRule = ConnectionResolver.checkRules(connection) { permission ->
-                event.player.hasPermission(permission)
-            }
-            if (failedRule != null) continue
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val targetServer = targetResolver.findJoinTarget(event.player, config) ?: return
+        event.target = targetServer
+    }
 
-            val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
-            if (matchingNames.isEmpty()) continue
+    private fun handleServerDown(event: ServerConnectEvent) {
+        val config = plugin.connectionPlugin.connectionConfig.get()
+        val messages = plugin.connectionPlugin.messageConfig.get()
 
-            val targetServer = matchingNames
-                .mapNotNull { plugin.proxy.servers[it] }
-                .minByOrNull { it.players.size }
-                ?: continue
+        if (!config.fallback.enabled) return
 
+        val downServerName = event.player.server?.info?.name ?: return
+        val targetServer = targetResolver.findFallbackTarget(event.player, downServerName, config)
+        if (targetServer != null) {
             event.target = targetServer
             return
         }
 
         event.isCancelled = true
-        val audience = audiences.player(event.player)
-        audience.sendMessage(messages.msg(messages.kick.noTargetConnection))
-        event.player.disconnect()
+        event.player.disconnect(*BungeeComponentSerializer.get().serialize(messages.msg(messages.kick.noFallbackServers)))
     }
 
 }

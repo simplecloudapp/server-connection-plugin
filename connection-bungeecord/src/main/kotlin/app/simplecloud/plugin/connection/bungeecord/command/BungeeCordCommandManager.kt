@@ -60,15 +60,8 @@ class BungeeCordCommandManager(
         val config = plugin.connectionPlugin.connectionConfig.get()
         val messages = plugin.connectionPlugin.messageConfig.get()
         val audience = audiences.player(player)
-        val commandName = command.name
 
-        if (command.permission.isNotEmpty() && !player.hasPermission(command.permission)) {
-            logger.warn(
-                "Player ${player.name} (${player.uniqueId}) tried connection command /$commandName " +
-                    "without permission ${command.permission}."
-            )
-            return
-        }
+        if (command.permission.isNotEmpty() && !player.hasPermission(command.permission)) return
 
         val currentServerName = player.server?.info?.name
         val serverNames = plugin.proxy.servers.keys.toList()
@@ -81,110 +74,47 @@ class BungeeCordCommandManager(
                         currentServerName, connectionName, config.connections, serverNames
                     )
                 }
-                if (!isFromAllowed) {
-                    logger.info(
-                        "Skipping target connection ${target.name} for player ${player.name} " +
-                            "(${player.uniqueId}) via /$commandName because current server " +
-                            "$currentServerName is not allowed by from=${target.from}."
-                    )
-                    continue
-                }
+                if (!isFromAllowed) continue
             }
 
-            val connection = ConnectionResolver.findConnection(target.name, config.connections)
-            if (connection == null) {
-                logger.warn(
-                    "Connection command /$commandName for player ${player.name} (${player.uniqueId}) " +
-                        "references unknown target connection ${target.name}."
-                )
-                continue
-            }
+            val connection = ConnectionResolver.findConnection(target.name, config.connections) ?: continue
 
             val failedRule = ConnectionResolver.checkRules(connection) { permission ->
                 player.hasPermission(permission)
             }
-            if (failedRule != null) {
-                logger.warn(
-                    "Connection command /$commandName for player ${player.name} (${player.uniqueId}) " +
-                        "was blocked by rule ${failedRule.name} on target connection ${connection.name}."
-                )
-                continue
-            }
+            if (failedRule != null) continue
 
             val matchingNames = ConnectionResolver.findMatchingServerNames(connection, serverNames)
-            if (matchingNames.isEmpty()) {
-                logger.warn(
-                    "Connection command /$commandName for player ${player.name} (${player.uniqueId}) " +
-                        "found no registered servers matching target connection ${connection.name}."
-                )
-                continue
-            }
+            if (matchingNames.isEmpty()) continue
 
-            val targetServer = matchingNames
-                .mapNotNull { plugin.proxy.servers[it] }
-                .minByOrNull { it.players.size }
-            if (targetServer == null) {
-                logger.warn(
-                    "Connection command /$commandName for player ${player.name} (${player.uniqueId}) " +
-                        "matched servers $matchingNames for target connection ${connection.name}, " +
-                        "but none are registered on BungeeCord."
-                )
-                continue
-            }
-
-            if (currentServerName != null && targetServer.name.equals(currentServerName, ignoreCase = true)) {
+            if (currentServerName != null && matchingNames.any { name -> name.equals(currentServerName, ignoreCase = true) }) {
                 audience.sendMessage(messages.msg(command.messages.alreadyConnected))
                 return
             }
 
-            logger.info(
-                "Sending player ${player.name} (${player.uniqueId}) from ${currentServerName ?: "<none>"} " +
-                    "to ${targetServer.name} via connection command /$commandName " +
-                    "(target connection: ${connection.name})."
-            )
+            val targetServer = matchingNames
+                .mapNotNull { name -> plugin.proxy.servers[name] }
+                .minByOrNull { it.players.size }
+                ?: continue
+
             player.connect(
                 ServerConnectRequest.builder()
                     .target(targetServer)
                     .reason(ServerConnectEvent.Reason.COMMAND)
                     .callback { result: ServerConnectRequest.Result?, error: Throwable? ->
                         if (error != null) {
-                            logger.warn(
-                                "Connection command /$commandName failed while sending player ${player.name} " +
-                                    "(${player.uniqueId}) to ${targetServer.name}.",
-                                error
-                            )
+                            logger.warn("Failed to send player ${player.name} to ${targetServer.name}", error)
                             return@callback
                         }
+                        if (result == ServerConnectRequest.Result.SUCCESS) return@callback
 
-                        if (result == ServerConnectRequest.Result.SUCCESS) {
-                            logger.info(
-                                "Connection command /$commandName sent player ${player.name} " +
-                                    "(${player.uniqueId}) to ${targetServer.name}."
-                            )
-                            return@callback
-                        }
-
-                        if (result == ServerConnectRequest.Result.EVENT_CANCEL) {
-                            logger.warn(
-                                "Connection command /$commandName for player ${player.name} (${player.uniqueId}) " +
-                                    "to ${targetServer.name} was cancelled by ServerConnectEvent."
-                            )
-                        } else {
-                            logger.warn(
-                                "Connection command /$commandName could not send player ${player.name} " +
-                                    "(${player.uniqueId}) to ${targetServer.name}. Result: $result."
-                            )
-                        }
+                        logger.warn("Could not send player ${player.name} to ${targetServer.name} ($result)")
                     }
                     .build()
             )
             return
         }
 
-        logger.warn(
-            "Connection command /$commandName for player ${player.name} (${player.uniqueId}) " +
-                "found no usable target connection. Current server: ${currentServerName ?: "<none>"}."
-        )
         audience.sendMessage(messages.msg(command.messages.noTargetConnectionFound))
     }
 

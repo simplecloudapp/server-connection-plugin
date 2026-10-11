@@ -10,6 +10,8 @@ class BungeeCordServerRegistry(
     private val proxy: ProxyServer
 ) : ServerRegistry {
 
+    private val lock = Any()
+
     override fun register(proxyName: String, server: RegisteredServer) {
         val address = InetSocketAddress.createUnresolved(server.ip, server.port)
         val info: ServerInfo = proxy.constructServerInfo(
@@ -18,21 +20,34 @@ class BungeeCordServerRegistry(
             server.serverId,
             server.properties.getOrDefault("proxy-restricted", "false").toString().toBoolean()
         )
-        proxy.servers[proxyName] = info
-        refreshServerPriorities()
+
+        synchronized(lock) {
+            proxy.servers[proxyName] = info
+            refreshServerPriorities()
+        }
     }
 
     override fun unregister(proxyName: String, server: RegisteredServer) {
-        proxy.servers.remove(proxyName)
-        refreshServerPriorities()
+        synchronized(lock) {
+            proxy.servers.remove(proxyName)
+            refreshServerPriorities()
+        }
     }
 
-    fun refreshServerPriorities() {
+    fun clear() {
+        synchronized(lock) {
+            proxy.servers.clear()
+            proxy.configurationAdapter.servers.clear()
+            proxy.config.listeners.forEach { listener -> listener.serverPriority.clear() }
+        }
+    }
+
+    private fun refreshServerPriorities() {
         val serverNames = proxy.servers.keys.toList()
         proxy.config.listeners.forEach { listener ->
-            listener.serverPriority.removeIf { priority -> serverNames.none { it.equals(priority, ignoreCase = true) } }
+            listener.serverPriority.removeIf { priority -> serverNames.none { name -> name.equals(priority, ignoreCase = true) } }
             serverNames.forEach { serverName ->
-                if (listener.serverPriority.none { it.equals(serverName, ignoreCase = true) }) {
+                if (listener.serverPriority.none { priority -> priority.equals(serverName, ignoreCase = true) }) {
                     listener.serverPriority.add(serverName)
                 }
             }

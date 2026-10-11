@@ -9,6 +9,7 @@ import dev.waterdog.waterdogpe.player.ProxiedPlayer
 
 class WaterdogReconnectHandler(
     private val plugin: WaterdogConnectionPlugin,
+    private val defaultHandler: IReconnectHandler,
 ) : IReconnectHandler {
 
     override fun getFallbackServer(
@@ -20,8 +21,7 @@ class WaterdogReconnectHandler(
         if (player == null) return null
 
         val config = plugin.connectionPlugin.connectionConfig.get()
-
-        if (!config.fallback.enabled) return null
+        if (!config.fallback.enabled) return defaultHandler.getFallbackServer(player, oldServer, reason, kickMessage)
 
         val kickedServerName = oldServer?.serverName
         val serverNames = plugin.proxy.servers.map { it.serverName }

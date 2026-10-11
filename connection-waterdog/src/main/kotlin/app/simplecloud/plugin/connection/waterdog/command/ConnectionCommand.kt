@@ -4,7 +4,6 @@ import app.simplecloud.plugin.connection.waterdog.WaterdogConnectionPlugin
 import dev.waterdog.waterdogpe.command.Command
 import dev.waterdog.waterdogpe.command.CommandSender
 import dev.waterdog.waterdogpe.command.CommandSettings
-import kotlinx.coroutines.launch
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.slf4j.LoggerFactory
 
@@ -29,14 +28,12 @@ class ConnectionCommand(
         }
 
         sendMessage(sender, messages.command.configReloading)
-        plugin.connectionPlugin.scope.launch {
-            try {
-                plugin.connectionPlugin.reload()
-                sendMessage(sender, messages.command.configReloadedSuccess)
-            } catch (e: Exception) {
-                sendMessage(sender, messages.command.configReloadedFailed)
-                logger.error("Failed to reload config", e)
-            }
+        try {
+            plugin.reload()
+            sendMessage(sender, messages.command.configReloadedSuccess)
+        } catch (exception: Exception) {
+            sendMessage(sender, messages.command.configReloadedFailed)
+            logger.error("Failed to reload config", exception)
         }
 
         return true
