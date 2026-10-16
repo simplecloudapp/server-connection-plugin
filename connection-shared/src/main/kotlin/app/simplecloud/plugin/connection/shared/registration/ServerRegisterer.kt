@@ -5,12 +5,15 @@ import app.simplecloud.api.event.Subscription
 import app.simplecloud.api.group.GroupServerType
 import app.simplecloud.api.server.Server
 import app.simplecloud.api.server.ServerState
+//import app.simplecloud.api.internal.integration.player.ServerNameRegistry
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.utilities.RegisteredServerResolver
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Function
 
 class ServerRegisterer(
     private val api: CloudApi,
@@ -22,8 +25,10 @@ class ServerRegisterer(
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val subscriptions: MutableList<Subscription> = mutableListOf()
     private val registeredServers = ConcurrentHashMap<String, RegisteredServer>()
+    private val serverNames = Function<String, Optional<String>> { id -> Optional.ofNullable(registeredServers[id]?.proxyName) }
 
     fun start() {
+        //ServerNameRegistry.register(serverNames)
         subscriptions.add(
             api.event().server().onStateChanged { event ->
                 val server = event.server ?: return@onStateChanged
@@ -47,6 +52,7 @@ class ServerRegisterer(
     }
 
     fun stop() {
+        //ServerNameRegistry.unregister(serverNames)
         subscriptions.forEach { subscription -> subscription.close() }
         subscriptions.clear()
         scope.cancel()
