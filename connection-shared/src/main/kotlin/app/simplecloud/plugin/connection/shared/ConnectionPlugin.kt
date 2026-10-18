@@ -7,10 +7,8 @@ import app.simplecloud.api.server.ServerState
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.connection.shared.config.CommandConfig
 import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
-import app.simplecloud.plugin.connection.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.connection.shared.config.MessageConfig
 import app.simplecloud.plugin.connection.shared.config.RegistrationServer
-import app.simplecloud.plugin.connection.shared.config.migration.LegacyConfigMigrator
 import app.simplecloud.plugin.connection.shared.connection.ConnectionResolver
 import app.simplecloud.plugin.connection.shared.registration.RegisteredServer
 import app.simplecloud.plugin.connection.shared.registration.ServerRegisterer
@@ -31,9 +29,9 @@ class ConnectionPlugin(
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val additionalServers = CopyOnWriteArrayList<RegisteredServer>()
 
-    val connectionConfig = createConnectionConfig()
-    val messageConfig = createConfig("messages.yml", MessageConfig::class.java, MessageConfig())
-    val commandConfig = createConfig("commands.yml", CommandConfig::class.java, CommandConfig())
+    val connectionConfig = ConfigurationFactory.create(dir, "config.yml", ConnectionConfig())
+    val messageConfig = ConfigurationFactory.create(dir, "messages.yml", MessageConfig())
+    val commandConfig = ConfigurationFactory.create(dir, "commands.yml", CommandConfig())
 
     private val registrationEnabled = connectionConfig.get().registration.enabled
     private val registerer = ServerRegisterer(api, registry, connectionConfig)
@@ -59,9 +57,9 @@ class ConnectionPlugin(
     }
 
     fun reload() {
-        loadConfig(connectionConfig, "config.yml", ConnectionConfig())
-        loadConfig(messageConfig, "messages.yml", MessageConfig())
-        loadConfig(commandConfig, "commands.yml", CommandConfig())
+        connectionConfig.reload()
+        messageConfig.reload()
+        commandConfig.reload()
         validateConnections()
 
         if (connectionConfig.get().registration.enabled != registrationEnabled) {
@@ -133,25 +131,5 @@ class ConnectionPlugin(
             blueprintConfigurator = null,
             persistent = true,
         )
-    }
-
-    private fun createConnectionConfig(): ConfigurationFactory<ConnectionConfig> {
-        val file = File(dir, "config.yml")
-        DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
-
-        val factory = ConfigurationFactory(file, ConnectionConfig::class.java, LegacyConfigMigrator.create(dir))
-        factory.loadOrCreate(ConnectionConfig())
-        return factory
-    }
-
-    private fun <E> createConfig(fileName: String, configClass: Class<E>, default: E): ConfigurationFactory<E> {
-        val factory = ConfigurationFactory(File(dir, fileName), configClass)
-        loadConfig(factory, fileName, default)
-        return factory
-    }
-
-    private fun <E> loadConfig(factory: ConfigurationFactory<E>, fileName: String, default: E) {
-        DefaultConfigInstaller.install(File(dir, fileName).toPath(), javaClass.classLoader)
-        factory.loadOrCreate(default)
     }
 }
