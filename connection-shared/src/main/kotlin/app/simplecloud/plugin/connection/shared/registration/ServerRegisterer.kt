@@ -10,20 +10,29 @@ import app.simplecloud.plugin.connection.shared.config.ConnectionConfig
 import app.simplecloud.plugin.connection.shared.utilities.RegisteredServerResolver
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
 class ServerRegisterer(
     private val api: CloudApi,
     private val registry: ServerRegistry,
     private val config: ConfigurationFactory<ConnectionConfig>,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     private val logger = LoggerFactory.getLogger(ServerRegisterer::class.java)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val scope = CoroutineScope(dispatcher + SupervisorJob())
     private val subscriptions: MutableList<Subscription> = mutableListOf()
     private val registeredServers = ConcurrentHashMap<String, RegisteredServer>()
 
+    private val proxyNameHolders = ConcurrentHashMap<String, String>()
+
+    @Volatile
+    private var serverIdMapping: AutoCloseable? = null
+
     fun start() {
+        publishServerIdMapping()
+
         subscriptions.add(
             api.event().server().onStateChanged { event ->
                 val server = event.server ?: return@onStateChanged
@@ -50,6 +59,7 @@ class ServerRegisterer(
         subscriptions.forEach { subscription -> subscription.close() }
         subscriptions.clear()
         scope.cancel()
+        withdrawServerIdMapping()
     }
 
     fun register(server: Server) {
@@ -57,12 +67,15 @@ class ServerRegisterer(
         register(registeredServer)
     }
 
+    @Synchronized
     fun refresh() {
-        registeredServers.values.forEach { server ->
+        val servers = registeredServers.values.toList()
+        servers.forEach { server ->
             register(server.copy(proxyName = resolveProxyName(server)))
         }
     }
 
+    @Synchronized
     private fun register(server: RegisteredServer) {
         if (server.blueprintConfigurator == "standalone") return
 
@@ -72,26 +85,73 @@ class ServerRegisterer(
             return
         }
 
-        val previousRegistration = registeredServers[server.serverId]
+        val ownPreviousRegistration = registeredServers[server.serverId]
 
-        if (previousRegistration?.proxyName == server.proxyName) {
+        if (ownPreviousRegistration?.proxyName == server.proxyName) {
             logger.info("Refreshing server ${server.serverId} (${server.proxyName})...")
         } else {
-            if (previousRegistration != null) {
-                logger.info("Replacing stale registration ${previousRegistration.serverId} (${previousRegistration.proxyName}) with ${server.proxyName}...")
-                registry.unregister(previousRegistration.proxyName, previousRegistration)
+            if (ownPreviousRegistration != null) {
+                logger.info("Replacing stale registration ${ownPreviousRegistration.serverId} (${ownPreviousRegistration.proxyName}) with ${server.proxyName}...")
+                unregisterFromProxy(ownPreviousRegistration)
             }
             logger.info("Registering server ${server.serverId} (${server.proxyName})...")
         }
 
+        val proxyNameKey = proxyNameKey(server)
+        val currentHolderId = proxyNameHolders[proxyNameKey]
+        val takesOverName = currentHolderId != null && currentHolderId != server.serverId
+        if (takesOverName) {
+            logger.warn("Server ${server.serverId} takes over the name ${server.proxyName} from server $currentHolderId")
+        }
+
+        // Claimed before the proxy switches, so the server ID mapping never answers for the replaced server.
+        proxyNameHolders[proxyNameKey] = server.serverId
         registry.register(server.proxyName, server)
         registeredServers[server.serverId] = server
     }
 
+    @Synchronized
     private fun unregister(serverId: String) {
         val registeredServer = registeredServers.remove(serverId) ?: return
         logger.info("Unregistering server $serverId (${registeredServer.proxyName})...")
-        registry.unregister(registeredServer.proxyName, registeredServer)
+        unregisterFromProxy(registeredServer)
+    }
+
+    // A server whose name another server took over is no longer on the proxy, so it is only forgotten.
+    private fun unregisterFromProxy(server: RegisteredServer) {
+        if (!holdsProxyName(server)) return
+        proxyNameHolders.remove(proxyNameKey(server))
+        registry.unregister(server.proxyName, server)
+    }
+
+    private fun holdsProxyName(server: RegisteredServer): Boolean {
+        val holderId = proxyNameHolders[proxyNameKey(server)]
+        return holderId == server.serverId
+    }
+
+    // Proxies look server names up case-insensitively.
+    private fun proxyNameKey(server: RegisteredServer): String {
+        return server.proxyName.lowercase()
+    }
+
+    // cloud-api calls this on the NATS dispatcher thread, so it only reads the concurrent maps.
+    private fun findRegisteredProxyName(serverId: String): Optional<String> {
+        val registeredServer = registeredServers[serverId] ?: return Optional.empty()
+        if (!holdsProxyName(registeredServer)) return Optional.empty()
+        return Optional.of(registeredServer.proxyName)
+    }
+
+    private fun publishServerIdMapping() {
+        try {
+            serverIdMapping = ProxyServerNamesBridge.register(::findRegisteredProxyName)
+        } catch (_: NoClassDefFoundError) {
+            logger.warn("The installed SimpleCloud API does not support connecting players by server ID yet. Update it to enable this.")
+        }
+    }
+
+    private fun withdrawServerIdMapping() {
+        serverIdMapping?.close()
+        serverIdMapping = null
     }
 
     private fun convertToRegisteredServer(server: Server): RegisteredServer? {
