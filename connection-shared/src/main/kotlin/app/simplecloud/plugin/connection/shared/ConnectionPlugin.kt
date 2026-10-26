@@ -2,6 +2,7 @@ package app.simplecloud.plugin.connection.shared
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.api.group.GroupServerType
+import app.simplecloud.api.server.Server
 import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.api.server.ServerState
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
@@ -20,15 +21,17 @@ import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration.Companion.seconds
 
 class ConnectionPlugin(
     private val dir: File,
     private val registry: ServerRegistry,
+    private val api: CloudApi = CloudApi.create(),
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
-    private val api = CloudApi.create()
     private val logger = LoggerFactory.getLogger(ConnectionPlugin::class.java)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val scope = CoroutineScope(dispatcher + SupervisorJob())
     private val additionalServers = CopyOnWriteArrayList<RegisteredServer>()
 
     val connectionConfig = createConnectionConfig()
@@ -92,19 +95,33 @@ class ConnectionPlugin(
 
     private suspend fun startRegistration() {
         logger.info("Starting server registration...")
-        loadExistingServers()
+        // Subscribe before loading, so a server that becomes available during the load isn't missed
         registerer.start()
-    }
-
-    private suspend fun loadExistingServers() {
-        val servers = api.server().getAllServers(
-            ServerQuery.create()
-                .filterByState(ServerState.AVAILABLE)
-                .filterByServerGroupType(GroupServerType.SERVER)
-        ).await()
-
+        val servers = loadExistingServersWithRetry()
         logger.info("Found ${servers.size} servers")
         servers.forEach { server -> registerer.register(server) }
+    }
+
+    private suspend fun loadExistingServersWithRetry(): List<Server> {
+        var retryDelay = FIRST_RETRY_DELAY
+        while (true) {
+            try {
+                return loadExistingServers()
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                logger.warn("Could not load the existing servers from the controller, retrying in $retryDelay: $exception")
+                delay(retryDelay)
+                retryDelay = minOf(retryDelay * 2, MAX_RETRY_DELAY)
+            }
+        }
+    }
+
+    private suspend fun loadExistingServers(): List<Server> {
+        val query = ServerQuery.create()
+            .filterByState(ServerState.AVAILABLE)
+            .filterByServerGroupType(GroupServerType.SERVER)
+        return api.server().getAllServers(query).await()
     }
 
     private fun registerAdditionalServers() {
@@ -153,5 +170,10 @@ class ConnectionPlugin(
     private fun <E> loadConfig(factory: ConfigurationFactory<E>, fileName: String, default: E) {
         DefaultConfigInstaller.install(File(dir, fileName).toPath(), javaClass.classLoader)
         factory.loadOrCreate(default)
+    }
+
+    private companion object {
+        val FIRST_RETRY_DELAY = 5.seconds
+        val MAX_RETRY_DELAY = 60.seconds
     }
 }

@@ -30,6 +30,7 @@ subprojects {
 
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
+        testImplementation(rootProject.libs.kotlin.coroutines.test)
         implementation(rootProject.libs.kotlin.coroutines.core)
 
         compileOnly(rootProject.libs.slf4j.api)
