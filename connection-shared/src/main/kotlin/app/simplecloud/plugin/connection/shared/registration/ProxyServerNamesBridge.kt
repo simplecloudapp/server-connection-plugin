@@ -4,7 +4,7 @@ import app.simplecloud.api.proxy.ProxyServerNames
 import java.util.Optional
 
 /**
- * Holds every reference to [ProxyServerNames], which cloud-api 0.1.0-platform.58 and .59 don't have.
+ * Holds every reference to [ProxyServerNames], which cloud-api before 0.1.0-platform.61 doesn't have.
  *
  * Loading a class that calls it works on those versions, but reflection or eager resolution of the class
  * (`getDeclaredFields`, `getDeclaredMethods`) fails. Keeping the references here keeps the always-loaded classes

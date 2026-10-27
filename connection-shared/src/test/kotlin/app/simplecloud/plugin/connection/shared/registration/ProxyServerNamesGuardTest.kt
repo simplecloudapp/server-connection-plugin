@@ -40,7 +40,7 @@ class ProxyServerNamesGuardTest {
 }
 
 /**
- * Hides ProxyServerNames like a proxy on cloud-api 0.1.0-platform.58 or .59 does.
+ * Hides ProxyServerNames like a proxy on cloud-api before 0.1.0-platform.61 does.
  *
  * It defines [ServerRegisterer] and [ProxyServerNamesBridge] itself, so that they resolve ProxyServerNames
  * through this loader. Every other class comes from the parent, so the test's fakes still fit.
