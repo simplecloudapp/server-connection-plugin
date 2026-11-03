@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Moved:** Server Connection now lives in [simplecloud-plugins](https://github.com/simplecloudapp/simplecloud-plugins/tree/main/proxy/server-connection). This repository is archived.
+
 # Server Connection Plugin
 
 ![Banner][banner]
@@ -24,7 +27,7 @@
 
 > All information about this project can be found in our detailed [documentation][docs-thisproject].
 
-The Server Connection Plugin provides comprehensive player connection management for your network. It automatically registers SimpleCloud v3 servers on your proxy.
+The Server Connection Plugin provides comprehensive player connection management for your network. It automatically registers SimpleCloud servers on your proxy.
 
 ## Features
 
